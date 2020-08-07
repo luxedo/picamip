@@ -33,7 +33,7 @@ POSSIBILITY OF SUCH DAMAGE.
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="Raspberry Pi Remote Camera">
     <meta name="author" content="Luiz Eduardo Amaral">
-    <title>piremotecam</title>
+    <title>picamip</title>
     <link rel="stylesheet" href="/static/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="/static/stylesheet.css">
     <script src="/static/jquery/jquery-3.5.1.min.js" ></script>
@@ -48,13 +48,12 @@ POSSIBILITY OF SUCH DAMAGE.
     <div id="content">
       {% block content %}{% endblock %}
     </div>
-    {#
       <div id="footer">
       {% if not self.footer() %}
         <div class="container-fluid">
           <div class="row">
             <div class="col-sm-6 offset-sm-3 mt-5 fixed-bottom">
-              <p class="text-center">Copyright &copy; 2020 Luiz Eduardo Amaral 
+              <p class="text-center">Picamip - Copyright &copy; 2020 Luiz Eduardo Amaral 
               &lt;<a href="mailto:luizamaral306@gmail.com">luizamaral306@gmail.com</a>&gt;</p>
             </div>
           </div>
@@ -63,7 +62,6 @@ POSSIBILITY OF SUCH DAMAGE.
         {% block footer %}{% endblock %}
       {% endif %}
     </div>
-    #}
   </body>
   {% block end %}{% endblock %}
 </html>

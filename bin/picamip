@@ -29,12 +29,12 @@ POSSIBILITY OF SUCH DAMAGE.
 """
 import argparse
 
-import piremotecam as prc
+import picamip
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        prog="piremotecam", description="Piremotecam: Raspberry Pi Remote Camera"
+        prog="picamip", description="picamip: Raspberry Pi IP Camera"
     )
     parser.add_argument(
         "host", nargs="?", default="0.0.0.0", type=str, help="Server host"
@@ -57,9 +57,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "-f",
         "--files-prefix",
-        default="Piremotecam",
+        default="Picamip_",
         type=str,
-        help="Directory to store the pictures",
+        help="Directory to store the pictures. Default: ~/Pictures",
     )
     parser.add_argument(
         "-t",
@@ -81,11 +81,11 @@ if __name__ == "__main__":
         help="Default root route. Eg: index.html",
     )
     parser.add_argument(
-        "-v", "--version", action="version", version=f"%(prog)s {prc.__version__}"
+        "-v", "--version", action="version", version=f"%(prog)s {picamip.__version__}"
     )
     args = parser.parse_args()
 
-    prc.run(
+    picamip.run(
         host=args.host,
         port=args.port,
         picture_dir=args.picture_dir,
