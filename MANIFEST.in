@@ -1,0 +1,2 @@
+include picamip/static/*
+include picamip/template/*
