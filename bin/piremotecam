@@ -29,12 +29,13 @@ POSSIBILITY OF SUCH DAMAGE.
 """
 import argparse
 
-import rpi_streame as rps
+import piremotecam as prc
 
 
 def main():
-    address = ("", 8000)
-    rps.run(address)
+    host = "0.0.0.0"
+    port = 8000
+    prc.run(host, port)
 
 
 if __name__ == "__main__":

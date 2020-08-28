@@ -29,6 +29,7 @@ POSSIBILITY OF SUCH DAMAGE.
 import http.server
 import io
 import logging
+import flask
 from threading import Condition
 from os import path
 import os
@@ -36,7 +37,7 @@ import os
 import picamera
 
 
-ROOT = path.basename(__file__)
+ROOT = path.dirname(__file__)
 
 
 class StreamingOutput(io.BytesIO):
@@ -57,64 +58,6 @@ class StreamingOutput(io.BytesIO):
         return super().write(buf)
 
 
-class StreamingHandler(http.server.CGIHTTPRequestHandler):
-    def __init__(self, *args, **kwargs):
-        self.routes = {
-            "/": self.root_route,
-            "/stream": self.stream_route,
-        }
-        self.static_dir = "./piremotecam/static"
-        self.static = os.listdir(self.static_dir)
-        super().__init__(*args, **kwargs)
-
-    def do_GET(self):
-        req_path = self.path.lstrip("/").split("?")[0] 
-        if self.path in self.routes:
-            self.routes[self.path]()
-        elif req_path in self.static:
-            self.static_route(req_path)
-        else:
-            self.send_error(404)
-            self.end_headers()
-    
-    def static_route(self, filename):
-        with open(path.join(self.static_dir, filename), "rb") as fp:
-            content = fp.read()
-        self.send_response(200)
-        self.send_header('Content-Type', 'text/html')
-        self.send_header('Content-Length', len(content))
-        self.end_headers()
-        self.wfile.write(content)
-
-    def root_route(self):
-        self.send_response(301)
-        self.send_header('Location', 'index.html')
-        self.end_headers()
-
-    def stream_route(self):
-        self.send_response(200)
-        self.send_header("Age", 0)
-        self.send_header("Cache-Control", "no-cache, private")
-        self.send_header("Pragma", "no-cache")
-        self.send_header("Content-Type", "multipart/x-mixed-replace; boundary=FRAME")
-        self.end_headers()
-        try:
-            while True:
-                with self.camera_output.condition:
-                    self.camera_output.condition.wait()
-                    frame = self.camera_output.frame
-                self.wfile.write(b"--FRAME\r\n")
-                self.send_header("Content-Type", "image/jpeg")
-                self.send_header("Content-Length", len(frame))
-                self.end_headers()
-                self.wfile.write(frame)
-                self.wfile.write(b"\r\n")
-        except Exception as e:
-            logging.warning(
-                "Removed streaming client %s: %s", self.client_address, str(e)
-            )
-
-
 class StreamingServer(http.server.ThreadingHTTPServer):
     allow_reuse_address = True
     daemon_threads = True
@@ -124,12 +67,59 @@ class StreamingServer(http.server.ThreadingHTTPServer):
         super().__init__(server_address, RequestHandlerClass)
 
 
-def run(address):
-    with picamera.PiCamera(resolution="640x480", framerate=24) as camera:
+def build_app(camera_output):
+    # static_folder = path.join(ROOT, "static/")
+    template_folder = path.join(ROOT, "template")
+    app = flask.Flask(
+        __name__, template_folder=template_folder
+    )
+
+    @app.route("/")
+    def index():
+        return flask.render_template("index.html")
+    
+    def stream_generator(camera_output):
+        try:
+            while True:
+                with camera_output.condition:
+                    camera_output.condition.wait()
+                    frame = camera_output.frame
+                yield (b"--FRAME\r\n" + 
+                    b"Content-Type: image/jpeg\r\n\r\n" + 
+                    frame + 
+                    b"\r\n"
+                )
+        except Exception as e:
+            logging.warning(
+                "Removed streaming client %s: %s", self.client_address, str(e)
+            )
+
+    @app.route("/stream")
+    def stream():
+        resp = flask.Response(stream_generator(camera_output))
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        resp.headers["Age"] = 0
+        resp.headers["Cache-Control"] = "no-cache, private"
+        resp.headers["Pragma"] = "no-cache"
+        resp.headers["Content-Type"] = "multipart/x-mixed-replace; boundary=FRAME"
+        return resp
+    return app
+
+
+class PiCameraSingleton:
+    instance = None
+    def __new__(cls, *args, **kwargs):
+        if not cls.instance:
+            cls.instance = picamera.PiCamera(*args, **kwargs) 
+        return cls.instance
+    
+
+def run(host, port):
+    with PiCameraSingleton(resolution="640x480", framerate=24) as camera:
         camera_output = StreamingOutput()
         camera.start_recording(camera_output, format="mjpeg")
+        app = build_app(camera_output)
         try:
-            server = StreamingServer(address, StreamingHandler, camera_output)
-            server.serve_forever()
+            app.run(host=host, port=port, use_reloader=False)
         finally:
             camera.stop_recording()
