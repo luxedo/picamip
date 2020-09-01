@@ -1,16 +1,112 @@
-<html>
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="Raspberry Pi Remote Camera">
-    <meta name="author" content="Luiz Eduardo Amaral">
-    <title>piremotecam</title>
-    <link rel="stylesheet" href="/static/bootstrap/4.5.2/css/bootstrap.min.css">
-    <!--<script src="/static/bootstrap/4.5.2/js/bootstrap.min.js" ></script>-->
-  </head>
+<!--
+  Python simple Raspberry-Pi camera module web interface
+  Copyright (c) 2020 Luiz Eduardo Amaral <luizamaral306@gmail.com>
 
-  <body>
-    <h1>piremotecam</h1>
-    <img src="stream" width="640" height="480" />
-  </body>
-</html>
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are met:
+
+  * Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+  * Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+  * Neither the name of the copyright holder nor the
+  names of its contributors may be used to endorse or promote products
+  derived from this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  POSSIBILITY OF SUCH DAMAGE.
+-->
+{% extends "layout.jinja" %}
+{% import "macros.jinja" as macros %}
+{% block content %}
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-sm-6 offset-sm-1">
+      <h1>piremotecam</h1>
+      <img class="img img-fluid" src="stream" />
+      <div class="mt-4">{{ macros.button(
+        action="/picture?download",
+        method="POST",
+        parameters={},
+        class="btn btn-primary", 
+        text="Picture", 
+        text_class="h4",
+        icon="/static/bootstrap/bootstrap-icons.svg#camera", 
+        icon_size="36") }}
+      </div>
+    </div>
+    <div class="col-sm-4">
+      <table class="table table-sm">
+        <thead>
+          <tr>
+            <th>Files</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in files %}
+          <tr>
+            <td> {{item[1]}} </td>
+            <td> {{ macros.button(
+              action="/picture",
+              parameters={"index": item[0]|string},
+              class="btn btn-light py-0", 
+              icon="/static/bootstrap/bootstrap-icons.svg#download", 
+              icon_size="16"
+              ) }}
+            </td>
+            <td> {{ macros.jsButton(
+              onsubmit="deleteIndex("+item[0]|string+");",
+              class="btn btn-danger py-0", 
+              icon="/static/bootstrap/bootstrap-icons.svg#trash", 
+              icon_size="16"
+              ) }}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <div class="row mt-5">
+        <div class="col-sm-5">
+          {{ macros.button(
+          action="/downloadAll", 
+          class="btn btn-secondary", 
+          text="Download", 
+          text_class="h5",
+          icon="/static/bootstrap/bootstrap-icons.svg#download", 
+          icon_size="24") }}
+        </div>
+        <div class="col-sm-5 offset-sm-2"> {{ macros.jsButton(
+          onsubmit="deleteAll();",
+          class="btn btn-danger", 
+          text="Delete All", 
+          text_class="h5",
+          icon="/static/bootstrap/bootstrap-icons.svg#trash", 
+          icon_size="24") }}
+        </div>
+      </div>
+    </div>
+  </div>
+  {# <div class="row mt-3">
+    <div class="col-sm-3 offset-sm-1">
+      {{ macros.button(
+      action="/picture",
+      method="POST",
+      class="btn-primary h4", 
+      text="Picture", 
+      icon="/static/bootstrap/bootstrap-icons.svg#camera", 
+      icon_size="48") }}
+    </div>
+    #}
+  </div>
+</div>
+{% endblock %}

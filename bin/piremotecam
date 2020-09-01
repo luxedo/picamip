@@ -35,7 +35,9 @@ import piremotecam as prc
 def main():
     host = "0.0.0.0"
     port = 8000
-    prc.run(host, port)
+    pictures_dir = "/home/pi/Pictures"
+    videos_dir = "/home/pi/Videos"
+    prc.run(host, port, pictures_dir, videos_dir)
 
 
 if __name__ == "__main__":

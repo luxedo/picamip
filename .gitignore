@@ -1,5 +1,6 @@
 *.pyc
 __pycache__/
+.mypy_cache/
 
 instance/
 
@@ -10,3 +11,5 @@ htmlcov/
 dist/
 build/
 *.egg-info/
+
+*.swp
