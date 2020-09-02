@@ -1,52 +1,60 @@
-<!--
-  Python simple Raspberry-Pi camera module web interface
-  Copyright (c) 2020 Luiz Eduardo Amaral <luizamaral306@gmail.com>
+{#
+Python simple Raspberry-Pi camera module web interface
+Copyright (c) 2020 Luiz Eduardo Amaral <luizamaral306@gmail.com>
 
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are met:
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
 
-  * Redistributions of source code must retain the above copyright
-  notice, this list of conditions and the following disclaimer.
-  * Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions and the following disclaimer in the
-  documentation and/or other materials provided with the distribution.
-  * Neither the name of the copyright holder nor the
-  names of its contributors may be used to endorse or promote products
-  derived from this software without specific prior written permission.
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the name of the copyright holder nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
 
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  POSSIBILITY OF SUCH DAMAGE.
--->
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGE.
+#}
 {% extends "layout.jinja" %}
 {% import "macros.jinja" as macros %}
 {% block content %}
 <div class="container-fluid">
-  <div class="row">
+  <div class="row mt-5">
     <div class="col-sm-6 offset-sm-1">
       <h1>piremotecam</h1>
-      <img class="img img-fluid" src="stream" />
-      <div class="mt-4">{{ macros.button(
-        action="/picture?download",
+      <img class="img img-fluid my-3" src="stream" />
+      <div class="picture-buttons">
+        {{ macros.button(
+        action="/picture?download=false",
         method="POST",
         parameters={},
         class="btn btn-primary", 
         text="Picture", 
-        text_class="h4",
+        text_class="h3",
         icon="/static/bootstrap/bootstrap-icons.svg#camera", 
-        icon_size="36") }}
+        icon_size="36")}}
+        {{ macros.jsButton(
+        onsubmit="pictureThenDownload();",
+        class="btn btn-success ml-3", 
+        text="Picture", 
+        text_class="h3",
+        icon="/static/bootstrap/bootstrap-icons.svg#camera", 
+        icon_size="36")}}
       </div>
     </div>
-    <div class="col-sm-4">
-      <table class="table table-sm">
+    <div class="col-sm-4 mt-3">
+      <table id="files" class="table table-sm mt-5">
         <thead>
           <tr>
             <th>Files</th>
@@ -55,17 +63,21 @@
         <tbody>
           {% for item in files %}
           <tr>
-            <td> {{item[1]}} </td>
-            <td> {{ macros.button(
+            <td class="align-bottom">
+              <a href="/picture?index={{item[0]}}" target="_blank">
+                {{item[1]}}
+              </a>
+            </td>
+            <td class="d-inline-flex justify-content-end text-nowrap"> 
+              {{ macros.button(
               action="/picture",
-              parameters={"index": item[0]|string},
-              class="btn btn-light py-0", 
+              parameters={"index": item[0]|string, "download": "true"},
+              class="btn btn-light py-0 mr-2", 
               icon="/static/bootstrap/bootstrap-icons.svg#download", 
               icon_size="16"
               ) }}
-            </td>
-            <td> {{ macros.jsButton(
-              onsubmit="deleteIndex("+item[0]|string+");",
+              {{ macros.jsButton(
+              onsubmit="delIdx="+item[0]|string+";openModal('deleteIndexModal');",
               class="btn btn-danger py-0", 
               icon="/static/bootstrap/bootstrap-icons.svg#trash", 
               icon_size="16"
@@ -75,38 +87,55 @@
           {% endfor %}
         </tbody>
       </table>
-      <div class="row mt-5">
-        <div class="col-sm-5">
+      <div class="row mt-2">
+        <nav  class="table-index" aria-label="Page navigation example">
+        </nav>
+      </div>
+      <div class="row mt-2">
+        <div class="col">
           {{ macros.button(
           action="/downloadAll", 
-          class="btn btn-secondary", 
+          class="btn btn-secondary mt-2", 
           text="Download", 
-          text_class="h5",
+          text_class="h6",
           icon="/static/bootstrap/bootstrap-icons.svg#download", 
-          icon_size="24") }}
-        </div>
-        <div class="col-sm-5 offset-sm-2"> {{ macros.jsButton(
-          onsubmit="deleteAll();",
-          class="btn btn-danger", 
-          text="Delete All", 
-          text_class="h5",
+          icon_size="16") }}
+          {{ macros.jsButton(
+          onsubmit="openModal('deleteAllModal');",
+          class="btn btn-danger mt-2", 
+          text=" Delete All", 
+          text_class="h6",
           icon="/static/bootstrap/bootstrap-icons.svg#trash", 
-          icon_size="24") }}
+          icon_size="16") }}
         </div>
       </div>
     </div>
   </div>
-  {# <div class="row mt-3">
-    <div class="col-sm-3 offset-sm-1">
-      {{ macros.button(
-      action="/picture",
-      method="POST",
-      class="btn-primary h4", 
-      text="Picture", 
-      icon="/static/bootstrap/bootstrap-icons.svg#camera", 
-      icon_size="48") }}
-    </div>
-    #}
-  </div>
+</div>
+<div class="modal-list">
+  {{ macros.simpleModal(
+  id="deleteAllModal", 
+  title="Delete",
+  message="Are you sure you want to delete all files?", 
+  button=macros.jsButton(
+  onsubmit="deleteAll();",
+  class="btn btn-danger", 
+  text="Delete All", 
+  text_class="",
+  icon="/static/bootstrap/bootstrap-icons.svg#trash", 
+  icon_size="16"), 
+  ) }} 
+  {{ macros.simpleModal(
+  id="deleteIndexModal", 
+  title="Delete",
+  message="Are you sure you want to delete?", 
+  button=macros.jsButton(
+  onsubmit="deleteIndex();",
+  class="btn btn-danger", 
+  text="Delete", 
+  text_class="",
+  icon="/static/bootstrap/bootstrap-icons.svg#trash", 
+  icon_size="16"), 
+  ) }}
 </div>
 {% endblock %}

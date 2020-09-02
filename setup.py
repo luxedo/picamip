@@ -27,6 +27,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 """
 import io
+import re
 
 from setuptools import find_packages
 from setuptools import setup
@@ -34,10 +35,17 @@ from setuptools import setup
 with open("README.md", "r") as fp:
     readme = fp.read()
 
+with open("piremotecam/__init__.py", "r") as fp:
+    version = (
+        [line for line in fp.read().split("\n") if line.startswith("__version__")][0]
+        .split("=")[1]
+        .strip()
+        .strip('"')
+    )
 
 setup(
     name="piremotecam",
-    version="1.0.0-beta",
+    version=version,
     url="https://github.com/luxedo/piremotecam",
     license='BSD 3-clause "New" or "Revised License"',
     maintainer="Luiz Eduardo Amaral",
@@ -49,16 +57,15 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     zip_safe=False,
-    install_requires=[],
+    install_requires=["flask", "flask-socketio"],
     extras_require={"test": ["pytest", "coverage"]},
-    keywords = ["raspberrypi", "camera", "http"],
+    keywords=["raspberrypi", "camera", "http"],
     classifiers=[
-        "Development Status :: 4 - Beta"
-        "Intended Audience :: Developers",
+        "Development Status :: 4 - Beta" "Intended Audience :: Developers",
         "License :: OSI Approved :: BSD License",
         "Operating System :: POSIX :: Linux",
         "Programming Language :: Python :: 3.7",
         "Topic :: Multimedia :: Graphics :: Capture :: Digital Camera",
-        "Topic :: Internet :: WWW/HTTP :: HTTP Servers"
-    ]
+        "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
+    ],
 )

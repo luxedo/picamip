@@ -32,7 +32,7 @@ import argparse
 import piremotecam as prc
 
 
-def main():
+def serve():
     host = "0.0.0.0"
     port = 8000
     pictures_dir = "/home/pi/Pictures"
@@ -41,4 +41,26 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(
+        description="Piremotecam: Raspberry Pi Remote Camera"
+    )
+    parser.add_argument(
+        "host", nargs="?", default="0.0.0.0", type=str, help="Server host"
+    )
+    parser.add_argument("port", nargs="?", default=8000, type=int, help="Server port")
+    parser.add_argument(
+        "-P",
+        "--pictures-dir",
+        default="/home/pi/Pictures",
+        type=str,
+        help="Pictures storage directory",
+    )
+    parser.add_argument(
+        "-V",
+        "--videos-dir",
+        default="/home/pi/Videos",
+        type=str,
+        help="Videos storage directory",
+    )
+    args = parser.parse_args()
+    serve()

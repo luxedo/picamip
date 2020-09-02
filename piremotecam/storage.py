@@ -171,7 +171,7 @@ class IndexedFilesStorage:
         Returns:
             deleted (int): Number of deleted files
         """
-        fileindexes = self.files.keys()
-        for index, name in fileindexes:
+        fileindexes = dict(self).keys()
+        for index in fileindexes:
             self.delete_index(index)
         return len(fileindexes)

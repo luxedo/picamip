@@ -56,6 +56,7 @@ class StreamPiCamera(PiCamera):
     Wrapper class for picamera.PiCamera that extends it by adding a
     stream_generator method to yield streaming frames.
     """
+
     instance = None
 
     def __new__(cls, *args, **kwargs):
@@ -87,5 +88,17 @@ class StreamPiCamera(PiCamera):
     def capture(self, filename: str) -> None:
         if self.recording:
             self.stop_recording()
+        attributes = self.list_attributes()
+        self.resolution = (2592, 1944)
         super().capture(filename)
+        while self.recording:
+            self.stop_recording()
+        self.set_attributes(attributes)
         self.start_recording(self.stream_buffer, format="mjpeg")
+
+    def list_attributes(self) -> dict:
+        return {"resolution": self.resolution}
+
+    def set_attributes(self, attributes: dict):
+        for attr, value in attributes.items():
+            setattr(self, attr, value)

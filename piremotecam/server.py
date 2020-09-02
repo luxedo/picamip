@@ -28,6 +28,7 @@ POSSIBILITY OF SUCH DAMAGE.
 """
 from os import path
 import os
+import json
 import re
 from tempfile import TemporaryDirectory
 import typing
@@ -62,21 +63,22 @@ def build_app(
         app (flask.Flask): Piremotecam flaksk app
     """
     app = flask.Flask(__name__, template_folder=path.join(ROOT, "template"))
+
     pictures_storage = storage.IndexedFilesStorage(
         pictures_dir, files_prefix, PICTURE_SUFFIX, INDEX_DIGITS
     )
 
-    @app.route("/")
+    @app.route("/", methods=["GET"])
     def index():
         return flask.render_template(
-            "index.html",
-            files=sorted(
-                [(index, name) for index, name in pictures_storage.files.items()],
-                key=lambda x: x[0],
-            ),
+            "index.html", files=list(sorted(pictures_storage, key=lambda x: -x[0]))
         )
 
-    @app.route("/stream")
+    @app.route("/files", methods=["GET"])
+    def files():
+        return flask.make_response(json.dumps(list(pictures_storage)))
+
+    @app.route("/stream", methods=["GET"])
     def stream():
         resp = flask.Response(camera.stream_generator())
         resp.headers["Access-Control-Allow-Origin"] = "*"
@@ -86,48 +88,32 @@ def build_app(
         resp.headers["Content-Type"] = "multipart/x-mixed-replace; boundary=FRAME"
         return resp
 
-    def _picture():
-        """
-        Takes a picture
-
-        Returns:
-            filename (str): Picture file name, None if any error
-        """
-        filename = pictures_storage.next_filename
-        try:
-            camera.capture(filename)
-            return filename
-        except picamera.exc.PiCameraValueError:
-            app.logger.warning("To many clicks! Ignoring request...")
-        except picamrea.exc.PiCameraAlreadyRecording:
-            app.logger.info("Ok! Camera already recording")
-
     def _picture_get():
         index = flask.request.args.get("index")
+        download = flask.request.args.get("download", "false").lower()
+        as_attachment = download in ["true", "1"]
+        if index == "-1":
+            index = pictures_storage.last_index
         try:
             index = int(index)
         except:
             return flask.make_response(BAD_REQUEST_MSG, 400)
-        if not index in pictures_storage:
+        if index not in pictures_storage:
             return flask.make_response(NOT_FOUND_MSG, 404)
         basename = path.basename(pictures_storage.make_filename(index))
-        return flask.send_from_directory(pictures_dir, basename, as_attachment=True)
+        return flask.send_from_directory(
+            pictures_dir, basename, as_attachment=as_attachment
+        )
 
     def _picture_post():
-        filename = _picture()
-        if filename is not None:
-            download = flask.request.args.get("download")
-            if download is not None:
-                if download == "":
-                    basename = path.basename(filename)
-                    return flask.send_from_directory(
-                        pictures_dir, basename, as_attachment=True
-                    )
-                return flask.make_response(BAD_REQUEST_MSG, 400)
-            download = flask.request.args.get("download")
-            return flask.redirect("/")
-        else:
-            return flask.make_response("Could not take a picture", 500)
+        filename = pictures_storage.next_filename
+        try:
+            camera.capture(filename)
+        except picamera.exc.PiCameraValueError:
+            app.logger.warning("To many clicks! Ignoring request...")
+        except picamera.exc.PiCameraAlreadyRecording:
+            app.logger.info("Ok! Camera already recording")
+        return flask.redirect("/")
 
     @app.route("/picture", methods=["GET", "POST"])
     def picture():
@@ -145,9 +131,10 @@ def build_app(
                 download: Download the file (optional)
         """
         if flask.request.method == "GET":
-            return _picture_get()
+            response = _picture_get()
         else:
-            return _picture_post()
+            response = _picture_post()
+        return response
 
     @app.route("/downloadAll", methods=["GET"])
     def downloadAll():
@@ -171,11 +158,8 @@ def build_app(
             index = int(index)
         except:
             return flask.make_response(BAD_REQUEST_MSG, 400)
-        try:
-            pictures_storage.delete_index(index)
-            return flask.make_response()
-        except:
-            return flask.make_response("Unexpected Error", 500)
+        deleted = pictures_storage.delete_index(index)
+        return flask.make_response()
 
     @app.route("/brewCoffee")
     def brewCoffee():
@@ -198,14 +182,10 @@ def run(
         host (str): RPi host
         port (int): host port
         camera (piremotecam.picamera.StreamPiCamera)
-        pictures_dir (str): Directory to store the pictures
+       pictures_dir (str): Directory to store the pictures
         videos_dir (str): Directory to store the videos
         files_prefix (str): Stored pictures/videos prefix
     """
-    # storages = ("internal", "download")
-    # if storage not in storages:
-    #     raise ValueError(f"storage must be {'or '.join(storages)}, got {storage}")
-
     with picamera.StreamPiCamera() as camera:
         app = build_app(camera, pictures_dir, videos_dir, files_prefix)
         try:
