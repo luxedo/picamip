@@ -34,6 +34,7 @@ from tempfile import TemporaryDirectory
 import typing
 
 import flask
+from jinja2 import TemplateNotFound
 
 from . import picamera, storage
 
@@ -47,36 +48,48 @@ INDEX_DIGITS = 4
 
 def build_app(
     camera: picamera.StreamPiCamera,
-    pictures_dir: str,
-    videos_dir: str,
+    picture_dir: str,
     files_prefix: str,
+    flask_template: str = None,
+    flask_static: str = None,
+    default_route: str = "index.html",
 ) -> flask.Flask:
     """
     Builds flask app for piremotecam
 
     Args:
         camera (piremotecam.picamera.StreamPiCamera)
-        pictures_dir (str): Directory to store the pictures
-        videos_dir (str): Directory to store the videos
-        files_prefix (str): Stored pictures/videos prefix
+        picture_dir (str): Directory to store the pictures
+        files_prefix (str): Stored pictures prefix
+        flask_template (str): Additional templates directory
+        flask_static (str): Additional static files directory
+        default_route (str): Default root route. Eg: index.html
     Returns:
         app (flask.Flask): Piremotecam flaksk app
     """
-    app = flask.Flask(__name__, template_folder=path.join(ROOT, "template"))
-
     pictures_storage = storage.IndexedFilesStorage(
-        pictures_dir, files_prefix, PICTURE_SUFFIX, INDEX_DIGITS
+        picture_dir, files_prefix, PICTURE_SUFFIX, INDEX_DIGITS
     )
+    template_folder = flask_template or path.join(ROOT, "template")
+
+    app = flask.Flask(
+        "piremotecam",
+        template_folder=template_folder,
+        static_folder=path.join(ROOT, "static"),
+    )
+
 
     @app.route("/", methods=["GET"])
     def index():
         return flask.render_template(
-            "index.html", files=list(sorted(pictures_storage, key=lambda x: -x[0]))
+            default_route, files=list(sorted(pictures_storage, key=lambda x: -x[0]))
         )
 
     @app.route("/files", methods=["GET"])
     def files():
-        return flask.make_response(json.dumps(list(pictures_storage)))
+        return flask.make_response(
+            json.dumps(list(sorted(pictures_storage, key=lambda x: x[0])))
+        )
 
     @app.route("/stream", methods=["GET"])
     def stream():
@@ -96,13 +109,13 @@ def build_app(
             index = pictures_storage.last_index
         try:
             index = int(index)
-        except:
+        except TypeError:
             return flask.make_response(BAD_REQUEST_MSG, 400)
         if index not in pictures_storage:
             return flask.make_response(NOT_FOUND_MSG, 404)
         basename = path.basename(pictures_storage.make_filename(index))
         return flask.send_from_directory(
-            pictures_dir, basename, as_attachment=as_attachment
+            picture_dir, basename, as_attachment=as_attachment
         )
 
     def _picture_post():
@@ -165,15 +178,23 @@ def build_app(
     def brewCoffee():
         return flask.make_response("I'm a teapot", 418)
 
+    if flask_static:
+
+        @app.route("/custom_static/<path:filename>")
+        def custom_static(filename):
+            return flask.send_from_directory(flask_static, filename)
+
     return app
 
 
 def run(
     host: str,
     port: int,
-    pictures_dir: str = "~/Pictures",
-    videos_dir: str = "~/Videos",
+    picture_dir: str = "~/Pictures",
     files_prefix: str = "Piremotecam",
+    flask_template: str = None,
+    flask_static: str = None,
+    default_route: str = "index.html",
 ) -> None:
     """
     Builds and starts the flask app for piremotecam
@@ -181,13 +202,21 @@ def run(
     Args:
         host (str): RPi host
         port (int): host port
-        camera (piremotecam.picamera.StreamPiCamera)
-       pictures_dir (str): Directory to store the pictures
-        videos_dir (str): Directory to store the videos
-        files_prefix (str): Stored pictures/videos prefix
+        picture_dir (str): Directory to store the pictures
+        files_prefix (str): Stored pictures prefix
+        flask_template (str): Additional templates directory
+        flask_static (str): Additional static files directory
+        default_route (str): Default root route. Eg: index.html
     """
     with picamera.StreamPiCamera() as camera:
-        app = build_app(camera, pictures_dir, videos_dir, files_prefix)
+        app = build_app(
+            camera,
+            picture_dir,
+            files_prefix,
+            flask_template,
+            flask_static,
+            default_route,
+        )
         try:
             app.run(host=host, port=port, use_reloader=False)
         finally:

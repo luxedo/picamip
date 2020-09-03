@@ -18,6 +18,7 @@ The software can be started with
 $ piremotecam
 ```
 
+# License
 > Python simple Raspberry-Pi camera module web interface
 > Copyright (c) 2020 Luiz Eduardo Amaral <luizamaral306@gmail.com>
 > 

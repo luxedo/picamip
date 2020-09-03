@@ -32,35 +32,65 @@ import argparse
 import piremotecam as prc
 
 
-def serve():
-    host = "0.0.0.0"
-    port = 8000
-    pictures_dir = "/home/pi/Pictures"
-    videos_dir = "/home/pi/Videos"
-    prc.run(host, port, pictures_dir, videos_dir)
-
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Piremotecam: Raspberry Pi Remote Camera"
+        prog="piremotecam", description="Piremotecam: Raspberry Pi Remote Camera"
     )
     parser.add_argument(
         "host", nargs="?", default="0.0.0.0", type=str, help="Server host"
     )
     parser.add_argument("port", nargs="?", default=8000, type=int, help="Server port")
     parser.add_argument(
-        "-P",
-        "--pictures-dir",
+        "-p",
+        "--picture-dir",
         default="/home/pi/Pictures",
         type=str,
         help="Pictures storage directory",
     )
+    # parser.add_argument(
+    #     "-V",
+    #     "--video-dir",
+    #     default="/home/pi/Videos",
+    #     type=str,
+    #     help="Videos storage directory",
+    # )
     parser.add_argument(
-        "-V",
-        "--videos-dir",
-        default="/home/pi/Videos",
+        "-f",
+        "--files-prefix",
+        default="Piremotecam",
         type=str,
-        help="Videos storage directory",
+        help="Directory to store the pictures",
+    )
+    parser.add_argument(
+        "-t",
+        "--flask-template",
+        type=str,
+        help="Flask additional jinja2 templates directory",
+    )
+    parser.add_argument(
+        "-s",
+        "--flask-static",
+        type=str,
+        help="Flask additional static files directory",
+    )
+    parser.add_argument(
+        "-d",
+        "--default-route",
+        default="index.html",
+        type=str,
+        help="Default root route. Eg: index.html",
+    )
+    parser.add_argument(
+        "-v", "--version", action="version", version=f"%(prog)s {prc.__version__}"
     )
     args = parser.parse_args()
-    serve()
+
+    prc.run(
+        host=args.host,
+        port=args.port,
+        picture_dir=args.picture_dir,
+        files_prefix=args.files_prefix,
+        flask_template=args.flask_template,
+        flask_static=args.flask_static,
+        default_route=args.default_route,
+    )

@@ -79,12 +79,14 @@ class IndexedFilesStorage:
         return len(self.files)
 
     def __repr__(self):
-        return (f"IndexedFileStorage(\n" +
-            f"    directory='{self.directory}',\n" +
-            f"    prefix='{self.directory}',\n"+
-            f"    suffix='{self.suffix}',\n"+
-            f"    index_digits={self.index_digits},\n"+
-            ")")
+        return (
+            f"IndexedFileStorage(\n"
+            + f"    directory='{self.directory}',\n"
+            + f"    prefix='{self.directory}',\n"
+            + f"    suffix='{self.suffix}',\n"
+            + f"    index_digits={self.index_digits},\n"
+            + ")"
+        )
 
     @property
     def files(self) -> typing.List[typing.Tuple[int, str]]:
