@@ -31,30 +31,27 @@ POSSIBILITY OF SUCH DAMAGE.
 {% block content %}
 <div class="container-fluid">
   <div class="row mt-5">
+    <div class="col-sm-6 offset-sm-1 d-flex align-items-baseline justify-content-between">
+      <h2 class="mb-0 mr-1">picamip</h2>
+    </div>
+  </div>
+  <div class="row mt-3">
     <div class="col-sm-6 offset-sm-1">
-      <h1>piremotecam</h1>
       <img class="img img-fluid my-3" src="stream" />
       <div class="picture-buttons">
         {{ macros.button(
         action="/picture?download=false",
         method="POST",
         parameters={},
-        class="btn btn-primary", 
-        text="Picture", 
-        text_class="h3",
-        icon="/static/bootstrap/bootstrap-icons.svg#camera", 
-        icon_size="36")}}
-        {{ macros.jsButton(
-        onsubmit="pictureThenDownload();",
-        class="btn btn-success ml-3", 
+        class="btn btn-primary tarvos-font-h1", 
         text="Picture", 
         text_class="h3",
         icon="/static/bootstrap/bootstrap-icons.svg#camera", 
         icon_size="36")}}
       </div>
     </div>
-    <div class="col-sm-4 mt-3">
-      <table id="files" class="table table-sm mt-5">
+    <div class="col-sm-4">
+      <table id="files" class="table table-sm mt-3">
         <thead>
           <tr>
             <th>Files</th>
@@ -96,14 +93,14 @@ POSSIBILITY OF SUCH DAMAGE.
           {{ macros.button(
           action="/downloadAll", 
           class="btn btn-secondary mt-2", 
-          text="Download", 
+          text="Download All", 
           text_class="h6",
           icon="/static/bootstrap/bootstrap-icons.svg#download", 
           icon_size="16") }}
           {{ macros.jsButton(
           onsubmit="openModal('deleteAllModal');",
           class="btn btn-danger mt-2", 
-          text=" Delete All", 
+          text="Delete All", 
           text_class="h6",
           icon="/static/bootstrap/bootstrap-icons.svg#trash", 
           icon_size="16") }}
@@ -116,7 +113,7 @@ POSSIBILITY OF SUCH DAMAGE.
   {{ macros.simpleModal(
   id="deleteAllModal", 
   title="Delete",
-  message="Are you sure you want to delete all files?", 
+  message="Are you sure you want to delete all?", 
   button=macros.jsButton(
   onsubmit="deleteAll();",
   class="btn btn-danger", 
@@ -139,3 +136,4 @@ POSSIBILITY OF SUCH DAMAGE.
   ) }}
 </div>
 {% endblock %}
+

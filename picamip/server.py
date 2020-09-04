@@ -55,17 +55,17 @@ def build_app(
     default_route: str = "index.html",
 ) -> flask.Flask:
     """
-    Builds flask app for piremotecam
+    Builds flask app for picamip
 
     Args:
-        camera (piremotecam.picamera.StreamPiCamera)
+        camera (picamip.picamera.StreamPiCamera)
         picture_dir (str): Directory to store the pictures
         files_prefix (str): Stored pictures prefix
         flask_template (str): Additional templates directory
         flask_static (str): Additional static files directory
         default_route (str): Default root route. Eg: index.html
     Returns:
-        app (flask.Flask): Piremotecam flaksk app
+        app (flask.Flask): Picamip flaksk app
     """
     pictures_storage = storage.IndexedFilesStorage(
         picture_dir, files_prefix, PICTURE_SUFFIX, INDEX_DIGITS
@@ -73,7 +73,7 @@ def build_app(
     template_folder = flask_template or path.join(ROOT, "template")
 
     app = flask.Flask(
-        "piremotecam",
+        "picamip",
         template_folder=template_folder,
         static_folder=path.join(ROOT, "static"),
     )
@@ -191,13 +191,13 @@ def run(
     host: str,
     port: int,
     picture_dir: str = "~/Pictures",
-    files_prefix: str = "Piremotecam",
+    files_prefix: str = "Picamip_",
     flask_template: str = None,
     flask_static: str = None,
     default_route: str = "index.html",
 ) -> None:
     """
-    Builds and starts the flask app for piremotecam
+    Builds and starts the flask app for picamip
 
     Args:
         host (str): RPi host

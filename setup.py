@@ -35,7 +35,7 @@ from setuptools import setup
 with open("README.md", "r") as fp:
     readme = fp.read()
 
-with open("piremotecam/__init__.py", "r") as fp:
+with open("picamip/__init__.py", "r") as fp:
     version = (
         [line for line in fp.read().split("\n") if line.startswith("__version__")][0]
         .split("=")[1]
@@ -44,20 +44,20 @@ with open("piremotecam/__init__.py", "r") as fp:
     )
 
 setup(
-    name="piremotecam",
+    name="picamip",
     version=version,
-    url="https://github.com/luxedo/piremotecam",
+    url="https://github.com/luxedo/picamip",
     license='BSD 3-clause "New" or "Revised License"',
     maintainer="Luiz Eduardo Amaral",
     maintainer_email="luizamaral306@gmail.com",
     description="Simple Raspberry Pi camera http server interface",
     long_description=readme,
-    scripts=["bin/piremotecam"],
+    scripts=["bin/picamip"],
     python_requires=">=3.7",
     packages=find_packages(),
     include_package_data=True,
     zip_safe=False,
-    install_requires=["flask", "flask-socketio"],
+    install_requires=["flask"],
     extras_require={"test": ["pytest", "coverage"]},
     keywords=["raspberrypi", "camera", "http"],
     classifiers=[

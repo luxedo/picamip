@@ -1,21 +1,50 @@
-# piremotecam 
+# PICAMIP 
 > Raspberry Pi Camera Web Interface
 
-This software runs on a RPi, it starts a webserver accessible via
-`http://rpi-remotecam.local`. The web interface has a preview screen, 
-buttons to take picture, download and delete images.
+This software runs on a RPi, it starts a webserver accessible via it's
+IP address. The web interface has a preview screen, buttons to take 
+picture, download and delete images.
 
+![picamip UI](doc/picamip.png)
 
 # Installing 
 Install with pip
 ```
-pip install piremotecam
+pip install picamip
 ```
 
 # Running
 The software can be started with
 ```
-$ piremotecam
+$ picamip
+```
+
+Additional options may be passed to the program:
+```
+picamip --help
+usage: picamip [-h] [-p PICTURE_DIR] [-f FILES_PREFIX] [-t FLASK_TEMPLATE]
+               [-s FLASK_STATIC] [-d DEFAULT_ROUTE] [-v]
+               [host] [port]
+
+picamip: Raspberry Pi IP Camera
+
+positional arguments:
+  host                  Server host
+  port                  Server port
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -p PICTURE_DIR, --picture-dir PICTURE_DIR
+                        Pictures storage directory
+  -f FILES_PREFIX, --files-prefix FILES_PREFIX
+                        Directory to store the pictures. Default: ~/Pictures
+  -t FLASK_TEMPLATE, --flask-template FLASK_TEMPLATE
+                        Flask additional jinja2 templates directory
+  -s FLASK_STATIC, --flask-static FLASK_STATIC
+                        Flask additional static files directory
+  -d DEFAULT_ROUTE, --default-route DEFAULT_ROUTE
+                        Default root route. Eg: index.html
+  -v, --version         show program's version number and exit
 ```
 
 # License
