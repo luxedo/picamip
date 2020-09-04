@@ -52,6 +52,7 @@ setup(
     maintainer_email="luizamaral306@gmail.com",
     description="Simple Raspberry Pi camera http server interface",
     long_description=readme,
+    long_description_content_type='text/markdown',
     scripts=["bin/picamip"],
     python_requires=">=3.7",
     packages=find_packages(),
@@ -61,7 +62,8 @@ setup(
     extras_require={"test": ["pytest", "coverage"]},
     keywords=["raspberrypi", "camera", "http"],
     classifiers=[
-        "Development Status :: 4 - Beta" "Intended Audience :: Developers",
+        "Development Status :: 4 - Beta",
+        "Intended Audience :: Developers",
         "License :: OSI Approved :: BSD License",
         "Operating System :: POSIX :: Linux",
         "Programming Language :: Python :: 3.7",
