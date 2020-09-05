@@ -1,2 +1,2 @@
-include picamip/static/*
-include picamip/template/*
+include picamip/static/**/*
+include picamip/template/**/*
