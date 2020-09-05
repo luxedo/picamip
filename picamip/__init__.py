@@ -28,4 +28,4 @@ POSSIBILITY OF SUCH DAMAGE.
 """
 from .server import *
 
-__version__ = "1.0.0-beta"
+__version__ = "1.0.1-beta"

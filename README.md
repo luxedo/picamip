@@ -18,6 +18,7 @@ The software can be started with
 ```
 $ picamip
 ```
+Then go to the interface at http://<Raspberry IP address>:8000
 
 Additional options may be passed to the program:
 ```
