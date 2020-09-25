@@ -10,13 +10,13 @@ picture, download and delete images.
 
 ![picamip UI](doc/picamip.png)
 
-# Installing 
+## Installing 
 Install with pip
 ```
 pip install picamip
 ```
 
-# Running
+## Running
 The software can be started with
 ```
 $ picamip
@@ -27,10 +27,10 @@ Additional options may be passed to the program:
 ```bash
 picamip --help
 usage: picamip [-h] [-p PICTURE_DIR] [-f FILES_PREFIX] [-t FLASK_TEMPLATE]
-               [-s FLASK_STATIC] [-d DEFAULT_ROUTE] [-v]
+               [-s FLASK_STATIC] [-o FLASK_OVERRIDES] [-d DEFAULT_ROUTE] [-v]
                [host] [port]
 
-picamip: Raspberry Pi IP Camera
+picamip: Python simple Raspberry-Pi camera module web interface
 
 positional arguments:
   host                  Server host
@@ -43,15 +43,23 @@ optional arguments:
   -f FILES_PREFIX, --files-prefix FILES_PREFIX
                         Directory to store the pictures. Default: ~/Pictures
   -t FLASK_TEMPLATE, --flask-template FLASK_TEMPLATE
-                        Flask additional jinja2 templates directory
+                        Flask additional jinja2 templates directory,
+                        overwrites defaults.
   -s FLASK_STATIC, --flask-static FLASK_STATIC
-                        Flask additional static files directory
+                        Flask additional static files directory, overwrites
+                        defaults.
+  -o FLASK_OVERRIDES, --flask-overrides FLASK_OVERRIDES
+                        Flask addional server functions
   -d DEFAULT_ROUTE, --default-route DEFAULT_ROUTE
                         Default root route. Eg: index.html
   -v, --version         show program's version number and exit
 ```
 
-# License
+## Customizing
+It's possible to customize the frontend by specifying another static
+and template directories with: `--flask-static` and `--flask-template`
+
+## License
 > Python simple Raspberry-Pi camera module web interface
 > Copyright (C) 2020 Luiz Eduardo Amaral <luizamaral306@gmail.com>
 > 

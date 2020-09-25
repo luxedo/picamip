@@ -14,11 +14,13 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 import asyncio
+import os
 from os import path
 import json
 import subprocess
 from tempfile import TemporaryDirectory
 import time
+import shutil
 
 import flask
 
@@ -36,8 +38,9 @@ def build_app(
     camera: picamera.StreamPiCamera,
     picture_dir: str,
     files_prefix: str,
-    flask_template: str = None,
-    flask_static: str = None,
+    flask_template: str,
+    flask_static: str,
+    flask_overrides: str = None,
     default_route: str = "index.html",
 ) -> flask.Flask:
     """
@@ -56,12 +59,11 @@ def build_app(
     pictures_storage = storage.IndexedFilesStorage(
         picture_dir, files_prefix, PICTURE_SUFFIX, INDEX_DIGITS
     )
-    template_folder = flask_template or path.join(ROOT, "template")
-
     app = flask.Flask(
         "picamip",
-        template_folder=template_folder,
-        static_folder=path.join(ROOT, "static"),
+        template_folder=flask_template,
+        static_folder=flask_static,
+        static_url_path="/static",
     )
 
     @app.route("/", methods=["GET"])
@@ -168,12 +170,6 @@ def build_app(
     def brewCoffee():
         return flask.make_response("I'm a teapot", 418)
 
-    if flask_static:
-
-        @app.route("/flask_static/<path:filename>")
-        def custom_static(filename):
-            return flask.send_from_directory(flask_static, filename)
-
     @app.route("/shutdown")
     def shutdown():
         sleep_then_shutdown(10)
@@ -192,6 +188,14 @@ def build_app(
     return app
 
 
+def _linktree(src, dst):
+    for f in os.listdir(src):
+        _dst = path.join(dst, f)
+        if path.exists(_dst):
+            os.remove(_dst)
+        os.symlink(path.join(src, f), _dst)
+
+
 def run(
     host: str,
     port: int,
@@ -199,8 +203,8 @@ def run(
     files_prefix: str = "Picamip_",
     flask_template: str = None,
     flask_static: str = None,
+    flask_overrides: str = None,
     default_route: str = "index.html",
-    server_overrides: str = None,
 ) -> None:
     """
     Builds and starts the flask app for picamip
@@ -212,15 +216,28 @@ def run(
         files_prefix (str): Stored pictures prefix
         flask_template (str): Additional templates directory
         flask_static (str): Additional static files directory
+        flask_overrides (str): Additional server functions overrides
         default_route (str): Default root route. Eg: index.html
     """
-    with picamera.StreamPiCamera() as camera:
+    with picamera.StreamPiCamera() as camera, TemporaryDirectory() as template_tmp, TemporaryDirectory() as static_tmp:
+
+        base_template = path.join(ROOT, "template")
+        _linktree(base_template, template_tmp)
+        if flask_template is not None:
+            _linktree(path.abspath(flask_template), template_tmp)
+
+        base_static = path.join(ROOT, "static")
+        _linktree(base_static, static_tmp)
+        if flask_static is not None:
+            _linktree(path.abspath(flask_static), static_tmp)
+
         app = build_app(
             camera,
             picture_dir,
             files_prefix,
-            flask_template,
-            flask_static,
+            template_tmp,
+            static_tmp,
+            flask_overrides,
             default_route,
         )
         try:

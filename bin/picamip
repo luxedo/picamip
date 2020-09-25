@@ -23,7 +23,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         prog="picamip",
         description="picamip: Python simple Raspberry-Pi camera"
-        + "module web interface",
+        + " module web interface",
     )
     parser.add_argument(
         "host", nargs="?", default="0.0.0.0", type=str, help="Server host"
@@ -56,13 +56,13 @@ if __name__ == "__main__":
         "-t",
         "--flask-template",
         type=str,
-        help="Flask additional jinja2 templates directory",
+        help="Flask additional jinja2 templates directory, overwrites defaults.",
     )
     parser.add_argument(
         "-s",
         "--flask-static",
         type=str,
-        help="Flask additional static files directory",
+        help="Flask additional static files directory, overwrites defaults.",
     )
     parser.add_argument(
         "-o",
