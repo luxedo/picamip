@@ -89,7 +89,7 @@ class IndexedFilesStorage:
         )
 
     @property
-    def files(self) -> typing.List[typing.Tuple[int, str]]:
+    def files(self) -> typing.Dict[int, str]:
         """
         Returns:
             files (list[tuple[int, str]]): List of tuples of the indexes
@@ -132,7 +132,7 @@ class IndexedFilesStorage:
         """
         if len(str(index)) > self.index_digits:
             raise IndexError(
-                f"Index out of range {self.prefix}(index){self.suffix}. Index {index}, max index: {'9'*self.digits}"
+                f"Index out of range {self.prefix}(index){self.suffix}. Index {index}, max index: {'9'*self.index_digits}"
             )
         return path.join(
             self.directory,

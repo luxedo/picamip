@@ -32,7 +32,7 @@ from threading import Condition
 from time import sleep
 import typing
 
-from picamera import *
+from picamera import PiCamera  # type: ignore
 
 
 class JpegStreamIO(io.BytesIO):
@@ -41,7 +41,7 @@ class JpegStreamIO(io.BytesIO):
         self.frame = None
         self.condition = Condition()
 
-    def write(self, buf):
+    def write(self, buf: bytes):
         if buf.startswith(b"\xff\xd8"):
             self.truncate()
             with self.condition:

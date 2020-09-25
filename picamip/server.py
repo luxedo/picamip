@@ -26,11 +26,14 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 """
+import asyncio
 from os import path
 import os
 import json
 import re
+import subprocess
 from tempfile import TemporaryDirectory
+import time
 import typing
 
 import flask
@@ -78,11 +81,12 @@ def build_app(
         static_folder=path.join(ROOT, "static"),
     )
 
-
     @app.route("/", methods=["GET"])
     def index():
         return flask.render_template(
-            default_route, files=list(sorted(pictures_storage, key=lambda x: -x[0]))
+            default_route,
+            files=list(sorted(pictures_storage, key=lambda x: -x[0])),
+            shutdown_button=True,
         )
 
     @app.route("/files", methods=["GET"])
@@ -161,7 +165,7 @@ def build_app(
         try:
             pictures_storage.delete_all()
             return flask.make_response()
-        except:
+        except Exception:
             return flask.make_response("Unexpected Error", 500)
 
     @app.route("/delete", methods=["DELETE"])
@@ -169,9 +173,9 @@ def build_app(
         index = flask.request.args.get("index")
         try:
             index = int(index)
-        except:
+        except ValueError:
             return flask.make_response(BAD_REQUEST_MSG, 400)
-        deleted = pictures_storage.delete_index(index)
+        pictures_storage.delete_index(index)
         return flask.make_response()
 
     @app.route("/brewCoffee")
@@ -180,9 +184,23 @@ def build_app(
 
     if flask_static:
 
-        @app.route("/custom_static/<path:filename>")
+        @app.route("/flask_static/<path:filename>")
         def custom_static(filename):
             return flask.send_from_directory(flask_static, filename)
+
+    @app.route("/shutdown")
+    def shutdown():
+        sleep_then_shutdown(10)
+        return flask.render_template("shutdown.html", shutdown_button=False)
+
+    def sleep_then_shutdown(timeout: int):
+        def _shutdown():
+            time.sleep(timeout)
+            app.logger.warning("Shutting down!")
+            # subprocess.run(["sudo", "poweroff"])
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_in_executor(None, _shutdown)
 
     return app
 
@@ -195,6 +213,7 @@ def run(
     flask_template: str = None,
     flask_static: str = None,
     default_route: str = "index.html",
+    server_overrides: str = None,
 ) -> None:
     """
     Builds and starts the flask app for picamip

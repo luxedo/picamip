@@ -27,84 +27,82 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 #}
 {% extends "layout.jinja" %}
-{% import "macros.jinja" as macros %}
+
+{% block head %}
+<script src="/static/paginator.js" ></script>
+<script src="/static/main.js" ></script>
+{% endblock %}
+
 {% block content %}
-<div class="container-fluid">
-  <div class="row mt-5">
-    <div class="col-sm-6 offset-sm-1 d-flex align-items-baseline justify-content-between">
-      <h2 class="mb-0 mr-1">picamip</h2>
+<div class="row mt-3">
+  <div class="col-sm-6 offset-sm-1">
+    <img class="img img-fluid my-3" src="stream" />
+    <div class="picture-buttons">
+      {{ macros.button(
+      action="/picture?download=false",
+      method="POST",
+      parameters={},
+      class="btn btn-primary tarvos-font-h1", 
+      text="Picture", 
+      text_class="h3",
+      icon="/static/bootstrap/bootstrap-icons.svg#camera", 
+      icon_size="36")}}
     </div>
   </div>
-  <div class="row mt-3">
-    <div class="col-sm-6 offset-sm-1">
-      <img class="img img-fluid my-3" src="stream" />
-      <div class="picture-buttons">
-        {{ macros.button(
-        action="/picture?download=false",
-        method="POST",
-        parameters={},
-        class="btn btn-primary tarvos-font-h1", 
-        text="Picture", 
-        text_class="h3",
-        icon="/static/bootstrap/bootstrap-icons.svg#camera", 
-        icon_size="36")}}
-      </div>
+  <div class="col-sm-4">
+    <table id="files" class="table table-sm mt-3">
+      <thead>
+        <tr>
+          <th>Files</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in files %}
+        <tr>
+          <td class="align-bottom">
+            <a href="/picture?index={{item[0]}}" target="_blank">
+              {{item[1]}}
+            </a>
+          </td>
+          <td class="d-inline-flex justify-content-end text-nowrap"> 
+            {{ macros.button(
+            action="/picture",
+            parameters={"index": item[0]|string, "download": "true"},
+            class="btn btn-light py-0 mr-2", 
+            icon="/static/bootstrap/bootstrap-icons.svg#download", 
+            icon_size="16"
+            ) }}
+            {{ macros.jsButton(
+            onsubmit="delIdx="+item[0]|string+";openModal('deleteIndexModal');",
+            class="btn btn-danger py-0", 
+            icon="/static/bootstrap/bootstrap-icons.svg#trash", 
+            icon_size="16"
+            ) }}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div class="row mt-2">
+      <nav  class="table-index" aria-label="Page navigation example">
+      </nav>
     </div>
-    <div class="col-sm-4">
-      <table id="files" class="table table-sm mt-3">
-        <thead>
-          <tr>
-            <th>Files</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for item in files %}
-          <tr>
-            <td class="align-bottom">
-              <a href="/picture?index={{item[0]}}" target="_blank">
-                {{item[1]}}
-              </a>
-            </td>
-            <td class="d-inline-flex justify-content-end text-nowrap"> 
-              {{ macros.button(
-              action="/picture",
-              parameters={"index": item[0]|string, "download": "true"},
-              class="btn btn-light py-0 mr-2", 
-              icon="/static/bootstrap/bootstrap-icons.svg#download", 
-              icon_size="16"
-              ) }}
-              {{ macros.jsButton(
-              onsubmit="delIdx="+item[0]|string+";openModal('deleteIndexModal');",
-              class="btn btn-danger py-0", 
-              icon="/static/bootstrap/bootstrap-icons.svg#trash", 
-              icon_size="16"
-              ) }}
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-      <div class="row mt-2">
-        <nav  class="table-index" aria-label="Page navigation example">
-        </nav>
-      </div>
-      <div class="row mt-2">
-        <div class="col">
-          {{ macros.button(
-          action="/downloadAll", 
-          class="btn btn-secondary mt-2", 
-          text="Download All", 
-          text_class="h6",
-          icon="/static/bootstrap/bootstrap-icons.svg#download", 
-          icon_size="16") }}
-          {{ macros.jsButton(
-          onsubmit="openModal('deleteAllModal');",
-          class="btn btn-danger mt-2", 
-          text="Delete All", 
-          text_class="h6",
-          icon="/static/bootstrap/bootstrap-icons.svg#trash", 
-          icon_size="16") }}
-        </div>
+    <div class="row mt-2">
+      <div class="col">
+        {{ macros.button(
+        action="/downloadAll", 
+        class="btn btn-secondary mt-2", 
+        text="Download All", 
+        text_class="h6",
+        icon="/static/bootstrap/bootstrap-icons.svg#download", 
+        icon_size="16") }}
+        {{ macros.jsButton(
+        onsubmit="openModal('deleteAllModal');",
+        class="btn btn-danger mt-2", 
+        text="Delete All", 
+        text_class="h6",
+        icon="/static/bootstrap/bootstrap-icons.svg#trash", 
+        icon_size="16") }}
       </div>
     </div>
   </div>
@@ -136,4 +134,3 @@ POSSIBILITY OF SUCH DAMAGE.
   ) }}
 </div>
 {% endblock %}
-
