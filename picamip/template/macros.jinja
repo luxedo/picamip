@@ -13,6 +13,15 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #}
+{% macro title() %}
+<h2 class="mb-0 mr-1">
+  Picamip
+  <a class="ml-2" style="" href="https://github.com/luxedo/picamip">
+    <img class="mb-3" src="static/GitHub-Mark-32px.png" /><span></span>
+  </a>
+</h2>
+{%- endmacro %}
+
 {% macro button(action, method="GET", parameters={}, class="btn-primary", text="", text_class="h4", icon="", icon_size=48) -%}
 <form class="d-inline" action="{{action}}" method="{{method}}">
   <button type="submit" class="{{class}}">
@@ -65,6 +74,26 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
 	{{button}}
       </div>
+    </div>
+  </div>
+</div>
+{% endmacro %}
+
+{% macro footer() %}
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-sm-6 offset-sm-3 mt-5 fixed-bottom text-center">
+      <p>
+        Copyright (c) 2020 Luiz Eduardo Amaral
+        <a href="mailto:luizamaral306@gmail.com?Subject=OCDots">
+          &lt;luizamaral306@gmail.com&gt;
+        </a>
+        <br />
+        This software is under a
+        <a href="https://www.gnu.org/licenses/gpl-3.0.en.html">GNU GPL3</a>
+        license. Have fun!
+        <span style="font-size: 1.5em; vertical-align: baseline">😉</span>
+      </p>
     </div>
   </div>
 </div>

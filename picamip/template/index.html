@@ -14,6 +14,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #}
 {% extends "layout.jinja" %}
+{% import "macros.jinja" as macros %}
 
 {% block head %}
 <script src="/static/paginator.js" ></script>
@@ -21,79 +22,100 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 {% endblock %}
 
 {% block content %}
-<div class="row mt-3">
-  <div class="col-sm-6 offset-sm-1">
-    <img class="img img-fluid my-3" src="stream" />
-    <div class="picture-buttons">
-      {{ macros.button(
-      action="/picture?download=false",
-      method="POST",
-      parameters={},
-      class="btn btn-primary tarvos-font-h1", 
-      text="Picture", 
-      text_class="h3",
-      icon="/static/bootstrap/bootstrap-icons.svg#camera", 
-      icon_size="36")}}
+<div class="container-fluid">
+  <div class="row mt-5">
+    <div class="col-sm-6 offset-sm-1">
+      {{ macros.title() }} 
+    </div>
+    <div class="col-sm-5 mt-2">
+        {{ macros.button(
+        action="/shutdown",
+        method="GET",
+        parameters={},
+        class="btn btn-warning tarvos-font-h1",
+        text="Shutdown",
+        text_class="h6",
+        icon="/static/bootstrap/bootstrap-icons.svg#power",
+        icon_size="20")}}
     </div>
   </div>
-  <div class="col-sm-4">
-    <table id="files" class="table table-sm mt-3">
-      <thead>
-        <tr>
-          <th>Files</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for item in files %}
-        <tr>
-          <td class="align-bottom">
-            <a href="/picture?index={{item[0]}}" target="_blank">
-              {{item[1]}}
-            </a>
-          </td>
-          <td class="d-inline-flex justify-content-end text-nowrap"> 
-            {{ macros.button(
-            action="/picture",
-            parameters={"index": item[0]|string, "download": "true"},
-            class="btn btn-light py-0 mr-2", 
-            icon="/static/bootstrap/bootstrap-icons.svg#download", 
-            icon_size="16"
-            ) }}
-            {{ macros.jsButton(
-            onsubmit="delIdx="+item[0]|string+";openModal('deleteIndexModal');",
-            class="btn btn-danger py-0", 
-            icon="/static/bootstrap/bootstrap-icons.svg#trash", 
-            icon_size="16"
-            ) }}
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-    <div class="row mt-2">
-      <nav  class="table-index" aria-label="Page navigation example">
-      </nav>
-    </div>
-    <div class="row mt-2">
-      <div class="col">
+  <div class="row">
+    <div class="col-sm-6 offset-sm-1">
+      <img class="img img-fluid my-3" src="stream" />
+      <div class="picture-buttons">
         {{ macros.button(
-        action="/downloadAll", 
-        class="btn btn-secondary mt-2", 
-        text="Download All", 
-        text_class="h6",
-        icon="/static/bootstrap/bootstrap-icons.svg#download", 
-        icon_size="16") }}
-        {{ macros.jsButton(
-        onsubmit="openModal('deleteAllModal');",
-        class="btn btn-danger mt-2", 
-        text="Delete All", 
-        text_class="h6",
-        icon="/static/bootstrap/bootstrap-icons.svg#trash", 
-        icon_size="16") }}
+        action="/picture?download=false",
+        method="POST",
+        parameters={},
+        class="btn btn-primary tarvos-font-h1",
+        text="Picture",
+        text_class="h3",
+        icon="/static/bootstrap/bootstrap-icons.svg#camera",
+        icon_size="36")}}
+      </div>
+    </div>
+    <div class="col-sm-4">
+      <table id="files" class="table table-sm my-3">
+        <thead>
+          <tr>
+            <th>Files</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in files %}
+          <tr>
+            <td class="align-bottom">
+              <a href="/picture?index={{item[0]}}" target="_blank">
+                {{item[1]}}
+              </a>
+            </td>
+            <td class="d-inline-flex justify-content-end text-nowrap">
+              {{ macros.button(
+              action="/picture",
+              parameters={"index": item[0]|string, "download": "true"},
+              class="btn btn-light py-0 mr-2",
+              icon="/static/bootstrap/bootstrap-icons.svg#download",
+              icon_size="16"
+              ) }}
+              {{ macros.jsButton(
+              onsubmit="delIdx="+item[0]|string+";openModal('deleteIndexModal');",
+              class="btn btn-danger py-0",
+              icon="/static/bootstrap/bootstrap-icons.svg#trash",
+              icon_size="16"
+              ) }}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <div class="row mt-2 ml-1">
+        <nav  class="table-index" aria-label="Page navigation example">
+        </nav>
+      </div>
+      <div class="row mt-2">
+        <div class="col">
+          {{ macros.button(
+          action="/downloadAll",
+          class="btn btn-secondary mt-2",
+          text="Download All",
+          text_class="h6",
+          icon="/static/bootstrap/bootstrap-icons.svg#download",
+          icon_size="16") }}
+          {{ macros.jsButton(
+          onsubmit="openModal('deleteAllModal');",
+          class="btn btn-danger mt-2",
+          text="Delete All",
+          text_class="h6",
+          icon="/static/bootstrap/bootstrap-icons.svg#trash",
+          icon_size="16") }}
+        </div>
       </div>
     </div>
   </div>
 </div>
+{% endblock %}
+
+{% block after %}
 <div class="modal-list">
   {{ macros.simpleModal(
   id="deleteAllModal", 
@@ -120,4 +142,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   icon_size="16"), 
   ) }}
 </div>
+{% endblock %}
+
+{% block footer %}
+  {{ macros.footer() }}
 {% endblock %}

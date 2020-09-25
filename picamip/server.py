@@ -69,7 +69,6 @@ def build_app(
         return flask.render_template(
             default_route,
             files=list(sorted(pictures_storage, key=lambda x: -x[0])),
-            shutdown_button=True,
         )
 
     @app.route("/files", methods=["GET"])
@@ -178,7 +177,7 @@ def build_app(
     @app.route("/shutdown")
     def shutdown():
         sleep_then_shutdown(10)
-        return flask.render_template("shutdown.html", shutdown_button=False)
+        return flask.render_template("shutdown.html")
 
     def sleep_then_shutdown(timeout: int):
         def _shutdown():

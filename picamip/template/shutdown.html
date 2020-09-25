@@ -14,15 +14,28 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #}
 {% extends "layout.jinja" %}
+{% import "macros.jinja" as macros %}
+
 {% block content %}
-<div class="row mt-5">
-  <div class="col-sm-6 offset-sm-1">
-    <h1>Picamip server is down
-      <svg class="bi" width="36" height="36" fill="currentColor">
-        <use xlink:href="/static/bootstrap/bootstrap-icons.svg#plug"/>
-      </svg>
-    </h1>
+<div class="container-fluid">
+  <div class="row mt-5">
+    <div class="col-sm-6 offset-sm-3">
+      {{ macros.title() }}
+    </div>
+  </div>
+  <div class="row mt-5">
+    <div class="col-sm-6 offset-sm-3">
+      <h1>
+        <svg class="bi" width="36" height="36" fill="currentColor">
+          <use xlink:href="/static/bootstrap/bootstrap-icons.svg#plug"/>
+        </svg>
+        Picamip server is down
+      </h1>
+    </div>
   </div>
 </div>
 {% endblock %}
 
+{% block footer %}
+  {{ macros.footer() }}
+{% endblock %}
