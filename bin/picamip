@@ -21,12 +21,16 @@ import picamip
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        prog="picamip", description="picamip: Raspberry Pi IP Camera"
+        prog="picamip",
+        description="picamip: Python simple Raspberry-Pi camera"
+        + "module web interface",
     )
     parser.add_argument(
         "host", nargs="?", default="0.0.0.0", type=str, help="Server host"
     )
-    parser.add_argument("port", nargs="?", default=8000, type=int, help="Server port")
+    parser.add_argument(
+        "port", nargs="?", default=8000, type=int, help="Server port"
+    )
     parser.add_argument(
         "-p",
         "--picture-dir",
@@ -61,15 +65,26 @@ if __name__ == "__main__":
         help="Flask additional static files directory",
     )
     parser.add_argument(
+        "-o",
+        "--flask-overrides",
+        type=str,
+        help="Flask addional server functions",
+    )
+    parser.add_argument(
         "-d",
         "--default-route",
         default="index.html",
         type=str,
         help="Default root route. Eg: index.html",
     )
+
     parser.add_argument(
-        "-v", "--version", action="version", version=f"%(prog)s {picamip.__version__}"
+        "-v",
+        "--version",
+        action="version",
+        version=f"%(prog)s {picamip.__version__}",
     )
+
     args = parser.parse_args()
 
     picamip.run(

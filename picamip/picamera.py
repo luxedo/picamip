@@ -13,7 +13,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-import logging
 import io
 from threading import Condition
 from time import sleep
@@ -69,7 +68,10 @@ class StreamPiCamera(PiCamera):
                 self.stream_buffer.condition.wait()
                 frame = self.stream_buffer.frame
             yield (
-                b"--FRAME\r\n" + b"Content-Type: image/jpeg\r\n\r\n" + frame + b"\r\n"
+                b"--FRAME\r\n"
+                + b"Content-Type: image/jpeg\r\n\r\n"
+                + frame
+                + b"\r\n"
             )
 
     def capture(self, filename: str) -> None:

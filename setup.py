@@ -13,9 +13,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-import io
-import re
-
 from setuptools import find_packages
 from setuptools import setup
 
@@ -24,7 +21,11 @@ with open("README.md", "r") as fp:
 
 with open("picamip/__init__.py", "r") as fp:
     version = (
-        [line for line in fp.read().split("\n") if line.startswith("__version__")][0]
+        [
+            line
+            for line in fp.read().split("\n")
+            if line.startswith("__version__")
+        ][0]
         .split("=")[1]
         .strip()
         .strip('"')
@@ -39,7 +40,7 @@ setup(
     maintainer_email="luizamaral306@gmail.com",
     description="Simple Raspberry Pi camera http server interface",
     long_description=readme,
-    long_description_content_type='text/markdown',
+    long_description_content_type="text/markdown",
     scripts=["bin/picamip"],
     python_requires=">=3.7",
     packages=find_packages(),

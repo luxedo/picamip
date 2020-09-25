@@ -15,16 +15,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 import asyncio
 from os import path
-import os
 import json
-import re
 import subprocess
 from tempfile import TemporaryDirectory
 import time
-import typing
 
 import flask
-from jinja2 import TemplateNotFound
 
 from . import picamera, storage
 
@@ -89,7 +85,9 @@ def build_app(
         resp.headers["Age"] = 0
         resp.headers["Cache-Control"] = "no-cache, private"
         resp.headers["Pragma"] = "no-cache"
-        resp.headers["Content-Type"] = "multipart/x-mixed-replace; boundary=FRAME"
+        resp.headers[
+            "Content-Type"
+        ] = "multipart/x-mixed-replace; boundary=FRAME"
         return resp
 
     def _picture_get():
@@ -145,7 +143,9 @@ def build_app(
         with TemporaryDirectory() as tmpdir:
             zipfile = f"{files_prefix}.zip"
             pictures_storage.zip(path.join(tmpdir, zipfile))
-            return flask.send_from_directory(tmpdir, zipfile, as_attachment=True)
+            return flask.send_from_directory(
+                tmpdir, zipfile, as_attachment=True
+            )
 
     @app.route("/deleteAll", methods=["DELETE"])
     def deleteAll():
@@ -184,7 +184,8 @@ def build_app(
         def _shutdown():
             time.sleep(timeout)
             app.logger.warning("Shutting down!")
-            # subprocess.run(["sudo", "poweroff"])
+            subprocess.run(["sudo", "poweroff"])
+
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         loop.run_in_executor(None, _shutdown)

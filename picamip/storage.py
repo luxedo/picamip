@@ -36,17 +36,25 @@ class IndexedFilesStorage:
     SANE_SUFFIX_RE = r"^[a-zA-Z0-9\-_\(\).]*$"
 
     def __init__(
-        self, directory: str, prefix: str = "", suffix: str = "", index_digits: int = 4
+        self,
+        directory: str,
+        prefix: str = "",
+        suffix: str = "",
+        index_digits: int = 4,
     ):
         if not path.isdir(directory):
-            raise NotADirectoryError(f"directory {directory} for storage not found.")
+            raise NotADirectoryError(
+                f"directory {directory} for storage not found."
+            )
         if not re.match(self.SANE_PREFIX_RE, prefix):
             raise ValueError(
-                f"prefix '{prefix}' is not sane (doesn't match {self.SANE_PREFIX_RE}"
+                f"prefix '{prefix}' is not sane (doesn't match"
+                + f" {self.SANE_PREFIX_RE})"
             )
         if not re.match(self.SANE_SUFFIX_RE, suffix):
             raise ValueError(
-                f"suffix '{suffix}' is not sane (doesn't match {self.SANE_SUFFIX_RE}"
+                f"suffix '{suffix}' is not sane (doesn't match "
+                + f"{self.SANE_SUFFIX_RE})"
             )
         self.directory = directory
         self.prefix = prefix
@@ -67,7 +75,7 @@ class IndexedFilesStorage:
 
     def __repr__(self):
         return (
-            f"IndexedFileStorage(\n"
+            "IndexedFileStorage(\n"
             + f"    directory='{self.directory}',\n"
             + f"    prefix='{self.directory}',\n"
             + f"    suffix='{self.suffix}',\n"
@@ -82,10 +90,14 @@ class IndexedFilesStorage:
             files (list[tuple[int, str]]): List of tuples of the indexes
                 as integers and the files
         """
-        file_re = rf"^{self.prefix}([0-9]{{{self.index_digits}}}){self.suffix}$"
+        file_re = (
+            rf"^{self.prefix}([0-9]{{{self.index_digits}}}){self.suffix}$"
+        )
         files = {
             int(match[1]): match[0]
-            for match in [re.match(file_re, f) for f in os.listdir(self.directory)]
+            for match in [
+                re.match(file_re, f) for f in os.listdir(self.directory)
+            ]
             if match is not None
         }
         return files
@@ -119,7 +131,8 @@ class IndexedFilesStorage:
         """
         if len(str(index)) > self.index_digits:
             raise IndexError(
-                f"Index out of range {self.prefix}(index){self.suffix}. Index {index}, max index: {'9'*self.index_digits}"
+                f"Index out of range {self.prefix}(index){self.suffix}."
+                + f" Index {index}, max index: {'9'*self.index_digits}"
             )
         return path.join(
             self.directory,
@@ -135,7 +148,9 @@ class IndexedFilesStorage:
         """
         with ZipFile(output, "w") as zip_out:
             for filename in self.files.values():
-                zip_out.write(path.join(self.directory, filename), arcname=filename)
+                zip_out.write(
+                    path.join(self.directory, filename), arcname=filename
+                )
 
     def delete_index(self, index) -> bool:
         """

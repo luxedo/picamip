@@ -1,5 +1,5 @@
-# PICAMIP 
-> Raspberry Pi Camera Web Interface
+# Picamip 
+> Python simple Raspberry-Pi camera module web interface
 
 [![PyPI version](https://badge.fury.io/py/picamip.svg)](https://badge.fury.io/py/picamip) 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
@@ -24,7 +24,7 @@ $ picamip
 Then go to the interface at http://<Raspberry IP address>:8000
 
 Additional options may be passed to the program:
-```
+```bash
 picamip --help
 usage: picamip [-h] [-p PICTURE_DIR] [-f FILES_PREFIX] [-t FLASK_TEMPLATE]
                [-s FLASK_STATIC] [-d DEFAULT_ROUTE] [-v]
@@ -52,7 +52,6 @@ optional arguments:
 ```
 
 # License
-
 > Python simple Raspberry-Pi camera module web interface
 > Copyright (C) 2020 Luiz Eduardo Amaral <luizamaral306@gmail.com>
 > 
