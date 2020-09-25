@@ -1,3 +1,4 @@
+include doc/**/*
 include picamip/static/**/*
 include picamip/static/**/**/*
 include picamip/static/**/**/**/*
