@@ -47,7 +47,7 @@ setup(
     include_package_data=True,
     zip_safe=False,
     install_requires=["picamera", "flask"],
-    extras_require={"test": ["pytest", "coverage", "mypy"]},
+    extras_require={"test": ["pytest", "coverage", "mypy", "pre-commit"]},
     keywords=["raspberrypi", "camera", "http"],
     classifiers=[
         "Development Status :: 4 - Beta",

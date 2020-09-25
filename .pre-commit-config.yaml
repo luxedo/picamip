@@ -1,0 +1,25 @@
+repos:
+-   repo: https://github.com/ambv/black
+    rev: stable
+    hooks:
+    -   id: black
+-   repo: https://gitlab.com/pycqa/flake8
+    rev: 3.7.9
+    hooks:
+    -   id: flake8
+-   repo: https://github.com/pre-commit/mirrors-mypy
+    rev: ''  # Use the sha / tag you want to point at
+    hooks:
+    -   id: mypy
+        args: [--no-strict-optional, --ignore-missing-imports]
+
+
+      # - repo: local
+      #   hooks:
+      #     - id: run-coverage
+      #       name: run-coverage
+      #       entry: bash -c "coverage run --omit '*/site-packages/*','*/test/*' -m pytest && coverage report -m"
+      #       language: system
+      #       types: [python]
+      #       pass_filenames: false
+      #       verbose: true

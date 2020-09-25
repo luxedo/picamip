@@ -31,7 +31,7 @@ NOT_FOUND_MSG = "File not found"
 PICTURE_SUFFIX = ".jpg"
 INDEX_DIGITS = 4
 
-
+# flake8: noqa: C901
 def build_app(
     camera: picamera.StreamPiCamera,
     picture_dir: str,
