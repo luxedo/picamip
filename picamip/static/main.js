@@ -60,7 +60,7 @@ function openModal(id) {
 function addPaginator() {
   const box = paginator({
     table: $("#files")[0],
-    rows_per_page: 15,
+    rows_per_page: 10,
     page_options: false,
     active_class: "active",
     box_mode: "list",

@@ -66,9 +66,9 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "-o",
-        "--flask-overrides",
+        "--flask-overload",
         type=str,
-        help="Flask addional server functions",
+        help="Flask app functions overload.",
     )
     parser.add_argument(
         "-d",
@@ -94,5 +94,6 @@ if __name__ == "__main__":
         files_prefix=args.files_prefix,
         flask_template=args.flask_template,
         flask_static=args.flask_static,
+        flask_overload=args.flask_overload,
         default_route=args.default_route,
     )

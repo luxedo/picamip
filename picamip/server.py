@@ -14,6 +14,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 import asyncio
+import importlib
 import os
 from os import path
 import json
@@ -23,6 +24,7 @@ import time
 import shutil
 
 import flask
+from werkzeug.exceptions import NotFound
 
 from . import picamera, storage
 
@@ -40,7 +42,7 @@ def build_app(
     files_prefix: str,
     flask_template: str,
     flask_static: str,
-    flask_overrides: str = None,
+    flask_overload: str,
     default_route: str = "index.html",
 ) -> flask.Flask:
     """
@@ -52,6 +54,7 @@ def build_app(
         files_prefix (str): Stored pictures prefix
         flask_template (str): Additional templates directory
         flask_static (str): Additional static files directory
+        flask_overload (str): Flask app functions overload
         default_route (str): Default root route. Eg: index.html
     Returns:
         app (flask.Flask): Picamip flaksk app
@@ -66,20 +69,56 @@ def build_app(
         static_url_path="/static",
     )
 
-    @app.route("/", methods=["GET"])
+    # Run overloads
+    if flask_overload is not None:
+        if not path.isfile(flask_overload):
+            raise ImportError(f"Module {flask_overload} not found")
+        spec = importlib.util.spec_from_file_location(  # type: ignore
+            "overload", flask_overload
+        )
+        overloads = importlib.util.module_from_spec(spec)  # type: ignore
+        spec.loader.exec_module(overloads)
+        overload_functions = {
+            fname: overloads.__dict__[fname]
+            for fname in dir(overloads)
+            if fname.startswith("overload")
+            and callable(overloads.__dict__[fname])
+        }
+        if len(overload_functions) == 0:
+            raise ImportError(
+                f"Module {flask_overload} has no overload functions"
+            )
+        for fn in overload_functions.values():
+            fn(app, camera)
+    urls = app.url_map.bind("localhost", "/")
+
+    def try_route(r, methods=["GET", "POST"]):
+        def wrap(fn):
+            try:
+                urls.match(r)
+                app.logger.warning(
+                    f"route '{r}' already overloaded. Skipping default"
+                )
+            except NotFound:
+                app.add_url_rule(r, methods=methods, view_func=fn)
+
+        return wrap
+
+    # Declare default routes
+    @try_route("/", methods=["GET"])
     def index():
         return flask.render_template(
             default_route,
             files=list(sorted(pictures_storage, key=lambda x: -x[0])),
         )
 
-    @app.route("/files", methods=["GET"])
+    @try_route("/files", methods=["GET"])
     def files():
         return flask.make_response(
             json.dumps(list(sorted(pictures_storage, key=lambda x: x[0])))
         )
 
-    @app.route("/stream", methods=["GET"])
+    @try_route("/stream", methods=["GET"])
     def stream():
         resp = flask.Response(camera.stream_generator())
         resp.headers["Access-Control-Allow-Origin"] = "*"
@@ -118,7 +157,7 @@ def build_app(
             app.logger.info("Ok! Camera already recording")
         return flask.redirect("/")
 
-    @app.route("/picture", methods=["GET", "POST"])
+    @try_route("/picture", methods=["GET", "POST"])
     def picture():
         """
         GET:
@@ -139,7 +178,7 @@ def build_app(
             response = _picture_post()
         return response
 
-    @app.route("/downloadAll", methods=["GET"])
+    @try_route("/downloadAll", methods=["GET"])
     def downloadAll():
         with TemporaryDirectory() as tmpdir:
             zipfile = f"{files_prefix}.zip"
@@ -148,7 +187,7 @@ def build_app(
                 tmpdir, zipfile, as_attachment=True
             )
 
-    @app.route("/deleteAll", methods=["DELETE"])
+    @try_route("/deleteAll", methods=["DELETE"])
     def deleteAll():
         try:
             pictures_storage.delete_all()
@@ -156,7 +195,7 @@ def build_app(
         except Exception:
             return flask.make_response("Unexpected Error", 500)
 
-    @app.route("/delete", methods=["DELETE"])
+    @try_route("/delete", methods=["DELETE"])
     def deleteIndex():
         index = flask.request.args.get("index")
         try:
@@ -166,11 +205,11 @@ def build_app(
         pictures_storage.delete_index(index)
         return flask.make_response()
 
-    @app.route("/brewCoffee")
+    @try_route("/brewCoffee")
     def brewCoffee():
         return flask.make_response("I'm a teapot", 418)
 
-    @app.route("/shutdown")
+    @try_route("/shutdown")
     def shutdown():
         sleep_then_shutdown(10)
         return flask.render_template("shutdown.html")
@@ -203,7 +242,7 @@ def run(
     files_prefix: str = "Picamip_",
     flask_template: str = None,
     flask_static: str = None,
-    flask_overrides: str = None,
+    flask_overload: str = None,
     default_route: str = "index.html",
 ) -> None:
     """
@@ -216,7 +255,7 @@ def run(
         files_prefix (str): Stored pictures prefix
         flask_template (str): Additional templates directory
         flask_static (str): Additional static files directory
-        flask_overrides (str): Additional server functions overrides
+        flask_overload (str): Flask app functions overload
         default_route (str): Default root route. Eg: index.html
     """
     with picamera.StreamPiCamera() as camera, TemporaryDirectory() as template_tmp, TemporaryDirectory() as static_tmp:
@@ -237,9 +276,10 @@ def run(
             files_prefix,
             template_tmp,
             static_tmp,
-            flask_overrides,
+            flask_overload,
             default_route,
         )
+
         try:
             app.run(host=host, port=port, use_reloader=False)
         finally:

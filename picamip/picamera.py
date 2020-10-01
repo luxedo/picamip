@@ -79,7 +79,10 @@ class StreamPiCamera(PiCamera):
             self.stop_recording()
         attributes = self.list_attributes()
         self.resolution = (2592, 1944)
+        self.start_preview()
+        sleep(2)
         super().capture(filename)
+        self.stop_preview()
         while self.recording:
             self.stop_recording()
         self.set_attributes(attributes)
