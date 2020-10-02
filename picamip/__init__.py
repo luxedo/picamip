@@ -15,4 +15,4 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 from .server import *
 
-__version__ = "1.1.0-beta"
+__version__ = "1.1.1-beta"
