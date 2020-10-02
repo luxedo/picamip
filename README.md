@@ -27,7 +27,7 @@ Additional options may be passed to the program:
 ```bash
 picamip --help
 usage: picamip [-h] [-p PICTURE_DIR] [-f FILES_PREFIX] [-t FLASK_TEMPLATE]
-               [-s FLASK_STATIC] [-o FLASK_OVERRIDES] [-d DEFAULT_ROUTE] [-v]
+               [-s FLASK_STATIC] [-o FLASK_OVERLOAD] [-d DEFAULT_ROUTE] [-v]
                [host] [port]
 
 picamip: Python simple Raspberry-Pi camera module web interface
@@ -48,8 +48,8 @@ optional arguments:
   -s FLASK_STATIC, --flask-static FLASK_STATIC
                         Flask additional static files directory, overwrites
                         defaults.
-  -o FLASK_OVERRIDES, --flask-overrides FLASK_OVERRIDES
-                        Flask addional server functions
+  -o FLASK_OVERLOAD, --flask-overload FLASK_OVERLOAD
+                        Flask app functions overload.
   -d DEFAULT_ROUTE, --default-route DEFAULT_ROUTE
                         Default root route. Eg: index.html
   -v, --version         show program's version number and exit
@@ -57,7 +57,27 @@ optional arguments:
 
 ## Customizing
 It's possible to customize the frontend by specifying another static
-and template directories with: `--flask-static` and `--flask-template`
+and template directories with: `--flask-static` and `--flask-template`.
+
+Endpoints may be customized by declaring callback functions into a
+python script and using `--flask-overload`. Overload functions must
+start with `overload` and they receive an instance of `flask.Flask`
+(`app` ) and an instance of`picamip.StreamPiCamera` (`camera`).
+
+## Endpoints
+Default endpoints are:
+* / - GET: root route
+* /files - GET: Gets the current storage indexes and filenames
+* /stream - GET: Camera preview (mjpeg)
+* /picture - GET: Gets an image of given index
+  * Query params: index (int) - picture index, download (bool)- Downloads the image
+* /picture - POST: Takes a picture from the camera
+  * Query params: download (bool)- Downloads the image
+* /downloadAll - GET: Downloads all the images as a zip file
+* /deleteAll - DELETE: Deletes all images
+* /delete - DELETE: Deletes an image of given index
+  * Query params: index (int) - picture index
+* /shutdown - POST: Shuts down the Raspberry Pi
 
 ## License
 > Python simple Raspberry-Pi camera module web interface

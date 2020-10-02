@@ -209,7 +209,7 @@ def build_app(
     def brewCoffee():
         return flask.make_response("I'm a teapot", 418)
 
-    @try_route("/shutdown")
+    @try_route("/shutdown", methods=["POST"])
     def shutdown():
         sleep_then_shutdown(10)
         return flask.render_template("shutdown.html")
