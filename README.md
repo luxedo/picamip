@@ -81,7 +81,7 @@ Default endpoints are:
 
 ## License
 > Python simple Raspberry-Pi camera module web interface
-> Copyright (C) 2020 Luiz Eduardo Amaral <luizamaral306@gmail.com>
+> Copyright (C) 2021 Luiz Eduardo Amaral <luizamaral306@gmail.com>
 > 
 > This program is free software: you can redistribute it and/or modify
 > it under the terms of the GNU General Public License as published by
