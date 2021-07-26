@@ -21,7 +21,7 @@ The software can be started with
 ```
 $ picamip
 ```
-Then go to the interface at http://&lt;Raspberry IP address&gt;:8000
+Then go to the interface at *http://&lt;Raspberry IP address&gt;:8000*
 
 Additional options may be passed to the program:
 ```bash
@@ -66,18 +66,18 @@ start with `overload` and they receive an instance of `flask.Flask`
 
 ## Endpoints
 Default endpoints are:
-* / - GET: root route
-* /files - GET: Gets the current storage indexes and filenames
-* /stream - GET: Camera preview (mjpeg)
-* /picture - GET: Gets an image of given index
+* **/** - GET: root route
+* **/files** - GET: Gets the current storage indexes and filenames
+* **/stream** - GET: Camera preview (mjpeg)
+* **/picture** - GET: Gets an image of given index
   * Query params: index (int) - picture index, download (bool)- Downloads the image
-* /picture - POST: Takes a picture from the camera
+* **/picture** - POST: Takes a picture from the camera
   * Query params: download (bool)- Downloads the image
-* /downloadAll - GET: Downloads all the images as a zip file
-* /deleteAll - DELETE: Deletes all images
-* /delete - DELETE: Deletes an image of given index
+* **/downloadAll** - GET: Downloads all the images as a zip file
+* **/deleteAll** - DELETE: Deletes all images
+* **/delete** - DELETE: Deletes an image of given index
   * Query params: index (int) - picture index
-* /shutdown - POST: Shuts down the Raspberry Pi
+* **/shutdown** - POST: Shuts down the Raspberry Pi
 
 ## License
 > Python simple Raspberry-Pi camera module web interface
