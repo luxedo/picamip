@@ -8,7 +8,7 @@ This software runs on a RPi, it starts a webserver accessible via it's
 IP address. The web interface has a preview screen, buttons to take 
 picture, download and delete images.
 
-![picamip UI](doc/picamip.png)
+![picamip UI](https://raw.githubusercontent.com/luxedo/picamip/master/doc/picamip.png)
 
 ## Installing 
 Install with pip
