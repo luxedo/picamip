@@ -51,7 +51,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 </form>
 {%- endmacro %}
 
-{% macro simpleModal(id, title, message, button) %}
+{% macro simpleModal(id, title, message, button, closeText='Close') %}
 <div
   class="modal fade"
   id="{{id}}"
@@ -63,7 +63,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title">{{title}}</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <button type="button" class="close" data-dismiss="modal" aria-label="{{closeText}}">
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
@@ -71,7 +71,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 	{{message}}
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{closeText}}</button>
 	{{button}}
       </div>
     </div>
@@ -85,7 +85,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     <div class="col-sm-6 offset-sm-3 mt-5 fixed-bottom text-center">
       <p>
         Copyright (c) 2021 Luiz Eduardo Amaral
-        <a href="mailto:luizamaral306@gmail.com?Subject=OCDots">
+        <a href="mailto:luizamaral306@gmail.com?Subject=picamip">
           &lt;luizamaral306@gmail.com&gt;
         </a>
         <br />
