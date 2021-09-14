@@ -13,6 +13,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from os import path
 import os
 import re
@@ -20,49 +22,20 @@ import typing
 from zipfile import ZipFile
 
 
-class IndexedFilesStorage:
-    """
-    Manages a file storage at `directory` with indexed files.
-    The files names will match {prefix}{index}{suffix}, where `index`
-    is a zero paded number with `number_digits` digits.
-    Args:
-        directory (str)
-        prefix (str)
-        suffix (str)
-        index_digits (int): Number of digits to match
-    """
+VALID_PATH_RE = r"[a-zA-Z0-9\-_\(\).]"
 
-    SANE_PREFIX_RE = r"^[a-zA-Z0-9\-_\(\).]+$"
-    SANE_SUFFIX_RE = r"^[a-zA-Z0-9\-_\(\).]*$"
 
-    def __init__(
-        self,
-        directory: str,
-        prefix: str = "",
-        suffix: str = "",
-        index_digits: int = 4,
-    ):
-        if not path.isdir(directory):
-            raise NotADirectoryError(
-                f"directory {directory} for storage not found."
-            )
-        if not re.match(self.SANE_PREFIX_RE, prefix):
-            raise ValueError(
-                f"prefix '{prefix}' is not sane (doesn't match"
-                + f" {self.SANE_PREFIX_RE})"
-            )
-        if not re.match(self.SANE_SUFFIX_RE, suffix):
-            raise ValueError(
-                f"suffix '{suffix}' is not sane (doesn't match "
-                + f"{self.SANE_SUFFIX_RE})"
-            )
-        self.directory = directory
-        self.prefix = prefix
-        self.suffix = suffix
-        self.index_digits = index_digits
+class FilesStorageAbc(ABC):
 
     def __getitem__(self, index):
         return self.files[index]
+
+    def __delitem__(self, index):
+        try:
+            os.remove(path.join(self.directory, self[index]))
+            return True
+        except FileNotFoundError:
+            return False
 
     def __iter__(self):
         yield from self.files.items()
@@ -73,34 +46,37 @@ class IndexedFilesStorage:
     def __len__(self):
         return len(self.files)
 
-    def __repr__(self):
-        return (
-            "IndexedFileStorage(\n"
-            + f"    directory='{self.directory}',\n"
-            + f"    prefix='{self.directory}',\n"
-            + f"    suffix='{self.suffix}',\n"
-            + f"    index_digits={self.index_digits},\n"
-            + ")"
-        )
+    def compress(self, output: str) -> None:
+        """
+        Zips all files in the storage and writes to `output`
 
-    @property
-    def files(self) -> typing.Dict[int, str]:
+        Args:
+            output (str): Target zip file
+        """
+        with ZipFile(output, "w") as zip_out:
+            for filename in self.files.values():
+                zip_out.write(
+                    path.join(self.directory, filename), arcname=filename
+                )
+
+    def delete_all(self) -> int:
+        """
+        Deletes all the files in the storage
+
+        Returns:
+            deleted (int): Number of deleted files
+        """
+        storage_len = len(self)
+        for i in range(storage_len):
+            del self[i]
+        return storage_len
+
+    def next_filename(self, *args, **kwargs) -> str:
         """
         Returns:
-            files (list[tuple[int, str]]): List of tuples of the indexes
-                as integers and the files
+            next_filename (str): The filename with the next avaliable index
         """
-        file_re = (
-            rf"^{self.prefix}([0-9]{{{self.index_digits}}}){self.suffix}$"
-        )
-        files = {
-            int(match[1]): match[0]
-            for match in [
-                re.match(file_re, f) for f in os.listdir(self.directory)
-            ]
-            if match is not None
-        }
-        return files
+        return self.make_filename(self.last_index + 1, *args, **kwargs)
 
     @property
     def last_index(self) -> int:
@@ -114,21 +90,78 @@ class IndexedFilesStorage:
             return 0
         return max(indexes)
 
-    @property
-    def next_filename(self) -> str:
-        """
-        Returns:
-            next_filename (str): The filename with the next avaliable index
-        """
-        return self.make_filename(self.last_index + 1)
-
-    def make_filename(self, index) -> str:
+    @abstractmethod
+    def make_filename(self, index, *args, **kwargs) -> str:
         """
         Args:
             index (int)
         Returns:
             filename (str): Absolute filename for given index
         """
+        pass
+
+    @property
+    @abstractmethod
+    def files(self) -> typing.Dict[int, str]:
+        """
+        Returns:
+            files (list[tuple[int, str]]): List of tuples of the indexes
+                as integers and the files
+        """
+        pass
+
+ 
+@dataclass
+class IndexedFilesStorage(FilesStorageAbc):
+    """
+    Manages a file storage at `directory` with indexed files.
+    The files names will match {prefix}{index}{suffix}, where `index`
+    is a zero paded number with `number_digits` digits.
+    Args:
+        directory (str)
+        prefix (str)
+        suffix (str)
+        index_digits (int): Number of digits to match
+    """
+    directory: str = path.join(path.expanduser("~"), "Pictures")
+    prefix:str = "picamip_"
+    suffix: str = ".jpg"
+    index_digits: int = 4
+
+    SANE_PREFIX_RE = rf"^{VALID_PATH_RE}+$"
+    SANE_SUFFIX_RE = rf"^{VALID_PATH_RE}*$"
+
+    def __post_init__(self):
+        if not path.isdir(self.directory):
+            raise NotADirectoryError(
+                f"directory {self.directory} for storage not found."
+            )
+        if not re.match(self.SANE_PREFIX_RE, self.prefix):
+            raise ValueError(
+                f"prefix '{prefix}' is not sane (doesn't match"
+                + f" {self.SANE_PREFIX_RE})"
+            )
+        if not re.match(self.SANE_SUFFIX_RE, self.suffix):
+            raise ValueError(
+                f"suffix '{suffix}' is not sane (doesn't match "
+                + f"{self.SANE_SUFFIX_RE})"
+            )
+
+    @property
+    def files(self) -> typing.Dict[int, str]:
+        file_re = (
+            rf"^{self.prefix}([0-9]{{{self.index_digits}}}){self.suffix}$"
+        )
+        files = {
+            int(match[1]): match[0]
+            for match in [
+                re.match(file_re, f) for f in os.listdir(self.directory)
+            ]
+            if match is not None
+        }
+        return files
+
+    def make_filename(self, index, *args, **kwargs) -> str:
         if len(str(index)) > self.index_digits:
             raise IndexError(
                 f"Index out of range {self.prefix}(index){self.suffix}."
@@ -139,43 +172,48 @@ class IndexedFilesStorage:
             f"{self.prefix}{str(index).zfill(self.index_digits)}{self.suffix}",
         )
 
-    def zip(self, output: str) -> None:
-        """
-        Zips all files in the storage and writes to `output`
 
-        Args:
-            output (str): Target zip file
-        """
-        with ZipFile(output, "w") as zip_out:
-            for filename in self.files.values():
-                zip_out.write(
-                    path.join(self.directory, filename), arcname=filename
-                )
+@dataclass
+class NamedFilesStorage(FilesStorageAbc):
+    directory: str = path.join(path.expanduser("~"), "Pictures")
+    suffix: str = ".jpg"
+    index_digits: int = 4
 
-    def delete_index(self, index) -> bool:
-        """
-        Deletes the filename that has matching `index`
+    SANE_SUFFIX_RE = rf"^{VALID_PATH_RE}*$"
 
-        Args:
-            index (int)
-        Returns:
-            deleted (bool): True if the file was deleted successfully
-                and False if the file doesn't exists
-        """
-        try:
-            os.remove(path.join(self.directory, self.make_filename(index)))
-            return True
-        except FileNotFoundError:
-            return False
+    def __post_init__(self):
+        if not path.isdir(self.directory):
+            raise NotADirectoryError(
+                f"directory {self.directory} for storage not found."
+            )
+        if not re.match(self.SANE_SUFFIX_RE, self.suffix):
+            raise ValueError(
+                f"suffix '{suffix}' is not sane (doesn't match "
+                + f"{self.SANE_SUFFIX_RE})"
+            )
 
-    def delete_all(self) -> int:
-        """
-        Deletes all the files in the storage
+    @property
+    def files(self) -> typing.Dict[int, str]:
+        file_re = (
+            rf"^({VALID_PATH_RE}*)([0-9]{{{self.index_digits}}}){self.suffix}$"
+        )
+        files = {
+            int(match[2]): match[0]
+            for match in [
+                re.match(file_re, f) for f in os.listdir(self.directory)
+            ]
+            if match is not None
+        }
+        return files
 
-        Returns:
-            deleted (int): Number of deleted files
-        """
-        fileindexes = dict(self).keys()
-        for index in fileindexes:
-            self.delete_index(index)
-        return len(fileindexes)
+    def make_filename(self, index, *args, **kwargs) -> str:
+        if len(str(index)) > self.index_digits:
+            raise IndexError(
+                f"Index out of range {prefix}(index){self.suffix}."
+                + f" Index {index}, max index: {'9'*self.index_digits}"
+            )
+        return path.join(
+            self.directory,
+            f"{kwargs.get('prefix', '')}{str(index).zfill(self.index_digits)}{self.suffix}",
+        )
+

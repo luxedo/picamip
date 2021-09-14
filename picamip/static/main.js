@@ -25,6 +25,16 @@ function pictureThenDownload() {
   })
 }
 
+function pictureWithPrefix(prefix) {
+  prefix = prefix || "Tarvos_"
+  const uri = `/picture?prefix=${prefix}`
+  const method = "POST"
+  const request = new Request(uri, {method})
+  fetch(request).then(response => {
+    location.reload()
+  })
+}
+
 function downloadURI(uri) {
   var link = document.createElement("a");
   link.href = uri
