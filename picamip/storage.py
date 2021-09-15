@@ -67,7 +67,7 @@ class FilesStorageAbc(ABC):
             deleted (int): Number of deleted files
         """
         storage_len = len(self)
-        for i in range(storage_len):
+        for i in range(1, storage_len+1):
             del self[i]
         return storage_len
 
