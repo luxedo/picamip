@@ -157,9 +157,8 @@ def build_app(
             return flask.make_response(BAD_REQUEST_MSG, 400)
         if index not in pictures_storage:
             return flask.make_response(NOT_FOUND_MSG, 404)
-        basename = path.basename(pictures_storage.make_filename(index))
         return flask.send_from_directory(
-            picture_dir, basename, as_attachment=as_attachment
+            picture_dir, pictures_storage[index], as_attachment=as_attachment
         )
 
     def _picture_post():
