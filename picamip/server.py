@@ -119,6 +119,11 @@ def build_app(
 
         return wrap
 
+    def open_camera():
+        nonlocal camera
+        if camera.closed:
+            camera = picamera.StreamPiCamera()
+
     # Declare default routes
     @try_route("/", methods=["GET"])
     def index():
@@ -135,6 +140,7 @@ def build_app(
 
     @try_route("/stream", methods=["GET"])
     def stream():
+        open_camera()
         resp = flask.Response(camera.stream_generator())
         resp.headers["Access-Control-Allow-Origin"] = "*"
         resp.headers["Age"] = 0
@@ -187,11 +193,26 @@ def build_app(
             Query parameters:
                 download: Download the file (optional)
         """
+        open_camera()
         if flask.request.method == "GET":
             response = _picture_get()
         else:
             response = _picture_post()
         return response
+
+    @try_route("/camera", methods=["POST"])
+    def configureCamera():
+        stop = flask.request.args.get("stop")
+        nonlocal camera
+        if stop is None:
+            return flask.make_response(BAD_REQUEST_MSG, 400)
+
+        if stop:
+            camera.close()
+        else:
+            camera = picamera.StreamPiCamera()
+        return flask.make_response()
+
 
     @try_route("/downloadAll", methods=["GET"])
     def downloadAll():
@@ -275,8 +296,7 @@ def run(
         flask_overload (str): Flask app functions overload
         default_route (str): Default root route. Eg: index.html
     """
-    with picamera.StreamPiCamera() as camera, \
-            TemporaryDirectory() as template_tmp, \
+    with TemporaryDirectory() as template_tmp, \
             TemporaryDirectory() as static_tmp:
 
         base_template = path.join(ROOT, "template")
@@ -289,6 +309,7 @@ def run(
         if flask_static is not None:
             _linktree(path.abspath(flask_static), static_tmp)
 
+        camera = picamera.StreamPiCamera()
         app = build_app(
             camera,
             picture_dir,
@@ -305,3 +326,4 @@ def run(
         finally:
             if camera.recording:
                 camera.stop_recording()
+            camera.close()
