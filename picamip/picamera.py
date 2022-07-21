@@ -93,4 +93,9 @@ class StreamPiCamera(PiCamera):
 
     def set_attributes(self, attributes: dict):
         for attr, value in attributes.items():
-            setattr(self, attr, value)
+            dattr = getattr(self, attr, None)
+            if isinstance(dattr, dict):
+                for key, v in value.items():
+                    dattr[key] = v
+            else:
+                setattr(self, attr, value)
