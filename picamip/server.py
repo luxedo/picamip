@@ -175,7 +175,9 @@ def build_app(
         except picamera.exc.PiCameraValueError:
             app.logger.warning("To many clicks! Ignoring request...")
         except picamera.exc.PiCameraAlreadyRecording:
-            app.logger.info("Ok! Camera already recording")
+            app.logger.warning("Ok! Camera already recording")
+        except:
+            app.logger.error("Unknown error")
         return flask.redirect("/")
 
     @try_route("/picture", methods=["GET", "POST"])
