@@ -18,7 +18,7 @@ from threading import Condition
 from time import sleep
 import typing
 
-from picamera import PiCamera  # type: ignore
+from picamera import *  # type: ignore
 
 
 class JpegStreamIO(io.BytesIO):
