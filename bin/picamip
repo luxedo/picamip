@@ -46,6 +46,13 @@ if __name__ == "__main__":
     #     help="Videos storage directory",
     # )
     parser.add_argument(
+        "-S",
+        "--storage-mode",
+        default="prefix",
+        choices=("prefix", "all"),
+        help="Storage mode for listing files",
+    )
+    parser.add_argument(
         "-f",
         "--files-prefix",
         default="Picamip_",
@@ -91,6 +98,7 @@ if __name__ == "__main__":
         host=args.host,
         port=args.port,
         picture_dir=args.picture_dir,
+        storage_mode=args.storage_mode,
         files_prefix=args.files_prefix,
         flask_template=args.flask_template,
         flask_static=args.flask_static,

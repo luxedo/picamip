@@ -18,7 +18,7 @@ from threading import Condition
 from time import sleep
 import typing
 
-from picamera import PiCamera  # type: ignore
+from picamera import *  # type: ignore
 
 
 class JpegStreamIO(io.BytesIO):
@@ -78,7 +78,7 @@ class StreamPiCamera(PiCamera):
         if self.recording:
             self.stop_recording()
         attributes = self.list_attributes()
-        self.resolution = (2592, 1944)
+        self.resolution = self.MAX_RESOLUTION
         self.start_preview()
         sleep(2)
         super().capture(filename)
@@ -93,4 +93,9 @@ class StreamPiCamera(PiCamera):
 
     def set_attributes(self, attributes: dict):
         for attr, value in attributes.items():
-            setattr(self, attr, value)
+            dattr = getattr(self, attr, None)
+            if isinstance(dattr, dict):
+                for key, v in value.items():
+                    dattr[key] = v
+            else:
+                setattr(self, attr, value)

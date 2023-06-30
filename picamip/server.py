@@ -29,6 +29,9 @@ from werkzeug.exceptions import NotFound
 
 from . import picamera, storage
 
+import logging
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)
 
 ROOT = path.dirname(__file__)
 BASE_TEMPLATE = path.join(ROOT, "template")
@@ -42,6 +45,7 @@ INDEX_DIGITS = 4
 def build_app(
     camera: picamera.StreamPiCamera,
     picture_dir: str,
+    storage_mode: str,
     files_prefix: str,
     flask_template: str,
     flask_static: str,
@@ -54,6 +58,7 @@ def build_app(
     Args:
         camera (picamip.picamera.StreamPiCamera)
         picture_dir (str): Directory to store the pictures
+        storage_mode (str): Storage mode (options: prefix, all)
         files_prefix (str): Stored pictures prefix
         flask_template (str): Additional templates directory
         flask_static (str): Additional static files directory
@@ -62,9 +67,19 @@ def build_app(
     Returns:
         app (flask.Flask): Picamip flaksk app
     """
-    pictures_storage = storage.IndexedFilesStorage(
-        picture_dir, files_prefix, PICTURE_SUFFIX, INDEX_DIGITS
-    )
+    if storage_mode=="all":
+        pictures_storage = storage.NamedFilesStorage(
+            picture_dir,
+            PICTURE_SUFFIX,
+            INDEX_DIGITS,
+        )
+    elif storage_mode=="prefix":
+        pictures_storage = storage.IndexedFilesStorage(
+            picture_dir,
+            files_prefix,
+            PICTURE_SUFFIX,
+            INDEX_DIGITS,
+        )
     app = flask.Flask(
         "picamip",
         template_folder=flask_template,
@@ -107,6 +122,11 @@ def build_app(
 
         return wrap
 
+    def open_camera():
+        nonlocal camera
+        if camera.closed:
+            camera = picamera.StreamPiCamera()
+
     # Declare default routes
     @try_route("/", methods=["GET"])
     def index():
@@ -123,6 +143,7 @@ def build_app(
 
     @try_route("/stream", methods=["GET"])
     def stream():
+        open_camera()
         resp = flask.Response(camera.stream_generator())
         resp.headers["Access-Control-Allow-Origin"] = "*"
         resp.headers["Age"] = 0
@@ -145,19 +166,21 @@ def build_app(
             return flask.make_response(BAD_REQUEST_MSG, 400)
         if index not in pictures_storage:
             return flask.make_response(NOT_FOUND_MSG, 404)
-        basename = path.basename(pictures_storage.make_filename(index))
         return flask.send_from_directory(
-            picture_dir, basename, as_attachment=as_attachment
+            picture_dir, pictures_storage[index], as_attachment=as_attachment
         )
 
     def _picture_post():
-        filename = pictures_storage.next_filename
+        prefix = flask.request.args.get("prefix")
+        filename = pictures_storage.next_filename(prefix=prefix)
         try:
             camera.capture(filename)
         except picamera.exc.PiCameraValueError:
             app.logger.warning("To many clicks! Ignoring request...")
         except picamera.exc.PiCameraAlreadyRecording:
-            app.logger.info("Ok! Camera already recording")
+            app.logger.warning("Ok! Camera already recording")
+        except:
+            app.logger.error("Unknown error")
         return flask.redirect("/")
 
     @try_route("/picture", methods=["GET", "POST"])
@@ -175,17 +198,32 @@ def build_app(
             Query parameters:
                 download: Download the file (optional)
         """
+        open_camera()
         if flask.request.method == "GET":
             response = _picture_get()
         else:
             response = _picture_post()
         return response
 
+    @try_route("/camera", methods=["POST"])
+    def configureCamera():
+        stop = flask.request.args.get("stop")
+        nonlocal camera
+        if stop is None:
+            return flask.make_response(BAD_REQUEST_MSG, 400)
+
+        if stop:
+            camera.close()
+        else:
+            camera = picamera.StreamPiCamera()
+        return flask.make_response()
+
+
     @try_route("/downloadAll", methods=["GET"])
     def downloadAll():
         with TemporaryDirectory() as tmpdir:
             zipfile = f"{files_prefix}.zip"
-            pictures_storage.zip(path.join(tmpdir, zipfile))
+            pictures_storage.compress(path.join(tmpdir, zipfile))
             return flask.send_from_directory(
                 tmpdir, zipfile, as_attachment=True
             )
@@ -205,7 +243,7 @@ def build_app(
             index = int(index)
         except ValueError:
             return flask.make_response(BAD_REQUEST_MSG, 400)
-        pictures_storage.delete_index(index)
+        del pictures_storage[index]
         return flask.make_response()
 
     @try_route("/brewCoffee")
@@ -267,6 +305,7 @@ def run(
     host: str,
     port: int,
     picture_dir: str = "~/Pictures",
+    storage_mode: str = "prefix",
     files_prefix: str = "Picamip_",
     flask_template: str = None,
     flask_static: str = None,
@@ -280,6 +319,7 @@ def run(
         host (str): RPi host
         port (int): host port
         picture_dir (str): Directory to store the pictures
+        storage_mode (str): Storage mode (options: prefix, all)
         files_prefix (str): Stored pictures prefix
         flask_template (str): Additional templates directory
         flask_static (str): Additional static files directory
