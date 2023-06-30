@@ -24,12 +24,15 @@ import time
 import shutil
 
 import flask
+from picamera import PiCameraError
 from werkzeug.exceptions import NotFound
 
 from . import picamera, storage
 
 
 ROOT = path.dirname(__file__)
+BASE_TEMPLATE = path.join(ROOT, "template")
+BASE_STATIC = path.join(ROOT, "static")
 BAD_REQUEST_MSG = "Could not process request"
 NOT_FOUND_MSG = "File not found"
 PICTURE_SUFFIX = ".jpg"
@@ -227,12 +230,37 @@ def build_app(
     return app
 
 
+def message_app(message, flask_template, flask_static):
+    app = flask.Flask(
+        "picamip",
+        template_folder=flask_template,
+        static_folder=flask_static,
+        static_url_path="/static",
+    )
+
+    @app.route("/", defaults={"path": ""})
+    @app.route("/<path:path>")
+    def catch_all(path):
+        return flask.render_template(
+            "message.html",
+            message=message,
+        )
+
+    return app
+
+
 def _linktree(src, dst):
     for f in os.listdir(src):
         _dst = path.join(dst, f)
         if path.exists(_dst):
             os.remove(_dst)
         os.symlink(path.join(src, f), _dst)
+
+
+def _link_directories(src, extra, dst):
+    _linktree(src, dst)
+    if extra is not None:
+        _linktree(path.abspath(extra), dst)
 
 
 def run(
@@ -258,30 +286,31 @@ def run(
         flask_overload (str): Flask app functions overload
         default_route (str): Default root route. Eg: index.html
     """
-    with picamera.StreamPiCamera() as camera, TemporaryDirectory() as template_tmp, TemporaryDirectory() as static_tmp:
+    with TemporaryDirectory() as template_tmp, TemporaryDirectory() as static_tmp:
 
-        base_template = path.join(ROOT, "template")
-        _linktree(base_template, template_tmp)
-        if flask_template is not None:
-            _linktree(path.abspath(flask_template), template_tmp)
-
-        base_static = path.join(ROOT, "static")
-        _linktree(base_static, static_tmp)
-        if flask_static is not None:
-            _linktree(path.abspath(flask_static), static_tmp)
-
-        app = build_app(
-            camera,
-            picture_dir,
-            files_prefix,
-            template_tmp,
-            static_tmp,
-            flask_overload,
-            default_route,
-        )
+        _link_directories(BASE_TEMPLATE, flask_template, template_tmp)
+        _link_directories(BASE_STATIC, flask_static, static_tmp)
 
         try:
-            app.run(host=host, port=port, use_reloader=False)
-        finally:
-            if camera.recording:
-                camera.stop_recording()
+            with picamera.StreamPiCamera() as camera:
+                app = build_app(
+                    camera,
+                    picture_dir,
+                    files_prefix,
+                    template_tmp,
+                    static_tmp,
+                    flask_overload,
+                    default_route,
+                )
+
+                try:
+                    app.run(host=host, port=port, use_reloader=False)
+                finally:
+                    if camera.recording:
+                        camera.stop_recording()
+
+        except PiCameraError:
+            app = message_app(
+                "Could not start camera", template_tmp, static_tmp
+            )
+            app.run(host, port)
