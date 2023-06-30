@@ -333,9 +333,11 @@ def run(
 
         try:
             with picamera.StreamPiCamera() as camera:
+
                 app = build_app(
                     camera,
                     picture_dir,
+                    storage_mode,
                     files_prefix,
                     template_tmp,
                     static_tmp,
