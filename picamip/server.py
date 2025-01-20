@@ -13,6 +13,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
+
 import asyncio
 import importlib
 import os
@@ -34,6 +35,7 @@ BAD_REQUEST_MSG = "Could not process request"
 NOT_FOUND_MSG = "File not found"
 PICTURE_SUFFIX = ".jpg"
 INDEX_DIGITS = 4
+
 
 # flake8: noqa: C901
 def build_app(
@@ -125,9 +127,9 @@ def build_app(
         resp.headers["Age"] = 0
         resp.headers["Cache-Control"] = "no-cache, private"
         resp.headers["Pragma"] = "no-cache"
-        resp.headers[
-            "Content-Type"
-        ] = "multipart/x-mixed-replace; boundary=FRAME"
+        resp.headers["Content-Type"] = (
+            "multipart/x-mixed-replace; boundary=FRAME"
+        )
         return resp
 
     def _picture_get():
